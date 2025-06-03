@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProyectoReservaCanchasMAUI.Models.NewFolder
+namespace ProyectoReservaCanchasMAUI.Models
 {
     public class Administrador : PersonaUdla
     {
