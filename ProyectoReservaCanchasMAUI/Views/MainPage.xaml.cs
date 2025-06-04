@@ -1,4 +1,4 @@
-﻿namespace ProyectoReservaCanchasMAUI
+﻿namespace ProyectoReservaCanchasMAUI.Views
 {
     public partial class MainPage : ContentPage
     {
@@ -9,16 +9,20 @@
             InitializeComponent();
         }
 
-        private void OnCounterClicked(object sender, EventArgs e)
+
+        private void CounterBtn_Clicked(object sender, EventArgs e)
         {
             count++;
-
             if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
+            {
+                CounterBtn.Text = $"Has hecho clic {count} vez";
+            }
             else
-                CounterBtn.Text = $"Clicked {count} times";
-
+            {
+                CounterBtn.Text = $"Has hecho clic {count} veces";
+            }
             SemanticScreenReader.Announce(CounterBtn.Text);
+
         }
     }
 
