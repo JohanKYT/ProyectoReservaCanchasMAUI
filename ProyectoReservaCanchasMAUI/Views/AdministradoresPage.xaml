@@ -2,31 +2,66 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ProyectoReservaCanchasMAUI.Views.AdministradoresPage"
-             Title="AdministradoresPage">
-    <StackLayout Padding="10">
-        <CollectionView x:Name="AdministradoresList">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Frame BorderColor="Gray" Margin="5" Padding="10">
-                        <Frame.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnAdministradorTapped" />
-                        </Frame.GestureRecognizers>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+             Title="Administradores">
 
-                            <!-- Izquierda: Nombre y Correo -->
-                            <StackLayout Grid.Column="0" Spacing="4">
-                                <Label Text="{Binding Nombre}" FontAttributes="Bold" FontSize="Medium" />
-                                <Label Text="{Binding Correo}" FontSize="Small" TextColor="Gray" />
-                            </StackLayout>
-                        </Grid>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </StackLayout>
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <!-- Formulario -->
+            <Entry x:Name="entryNombre" Placeholder="Nombre" />
+            <Entry x:Name="entryCorreo" Placeholder="Correo" Keyboard="Email" />
+            <Grid>
+                <Entry 
+                    x:Name="entryPassword"
+                    Placeholder="Contraseña"
+                    IsPassword="True"
+                    Margin="0,0,60,0" /> 
+                <ImageButton 
+                    x:Name="btnTogglePassword"
+                    Source="eye_off.png"
+                    BackgroundColor="GhostWhite"
+                    WidthRequest="20"
+                    HeightRequest="20"
+                    Margin="15,0,10,0" 
+                    HorizontalOptions="End"
+                    VerticalOptions="Center"
+                    Clicked="OnTogglePasswordVisibilityClicked"/>
+            </Grid>
+
+            <Entry x:Name="entryTelefono" Placeholder="Teléfono" Keyboard="Telephone" />
+            <Entry x:Name="entryDireccion" Placeholder="Dirección" />
+            <DatePicker x:Name="pickerFechaNacimiento" />
+            <Entry x:Name="entryFacultadId" Placeholder="Facultad ID" Keyboard="Numeric" />
+
+            <!-- Botones -->
+            <Button Text="Agregar Administrador" Clicked="OnAgregarClicked" />
+            <Button Text="Actualizar Administrador" Clicked="OnActualizarClicked" />
+            <Button Text="Eliminar Administrador" Clicked="OnEliminarClicked" />
+
+            <!-- Lista de administradores -->
+            <Label Text="Lista de Administradores" FontAttributes="Bold" FontSize="Medium" />
+
+            <CollectionView x:Name="AdministradoresList"
+                            SelectionMode="Single"
+                            SelectionChanged="OnSeleccionarAdmin"
+                            HeightRequest="500">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="5" HasShadow="True" CornerRadius="5">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Nombre}" FontAttributes="Bold" FontSize="Medium"/>
+                                <Label Text="{Binding Correo}" FontSize="Small"/>
+                                <Label Text="{Binding Facultad.Nombre}" FontAttributes="Italic" FontSize="Small"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
 </ContentPage>
-    
+
+
+

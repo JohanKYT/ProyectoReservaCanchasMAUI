@@ -11,7 +11,7 @@ namespace ProyectoReservaCanchasMAUI.Services
         {
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri("https://localhost:7004") // <-- cambia esto por tu URL base
+                BaseAddress = new Uri("https://localhost:7004/") // URL base de tu API
             };
         }
 
@@ -24,11 +24,51 @@ namespace ProyectoReservaCanchasMAUI.Services
             }
             catch (Exception ex)
             {
-                // Puedes manejar el error aquí o lanzar
                 Console.WriteLine($"Error: {ex.Message}");
                 return new List<Administrador>();
             }
         }
-        // Se busco este codigo de ChatGPT para poder conectar las APIs con el FrontEnd de la app.
+
+        public async Task<bool> AgregarAdministradorAsync(Administrador nuevo)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/Administrador", nuevo);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> ActualizarAdministradorAsync(Administrador actualizado)
+        {
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync($"api/Administrador/{actualizado.BannerId}", actualizado);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> EliminarAdministradorAsync(int bannerId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"api/Administrador/{bannerId}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return false;
+            }
+        }
     }
 }
