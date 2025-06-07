@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoReservaCanchasMAUI.Views.FacultadPage"
+             Title="Facultades">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <!-- Formulario -->
+            <Entry x:Name="entryNombre" Placeholder="Nombre Facultad" />
+            <Entry x:Name="entryCampusId" Placeholder="Campus ID" Keyboard="Numeric" />
+
+            <!-- Botones -->
+            <Button Text="Agregar Facultad" Clicked="OnAgregarClicked" />
+            <Button Text="Actualizar Facultad" Clicked="OnActualizarClicked" />
+            <Button Text="Eliminar Facultad" Clicked="OnEliminarClicked" />
+
+            <!-- Lista de facultades -->
+            <Label Text="Lista de Facultades" FontAttributes="Bold" FontSize="Medium" />
+
+            <CollectionView x:Name="FacultadesList"
+                            SelectionMode="Single"
+                            SelectionChanged="OnSeleccionarFacultad"
+                            HeightRequest="500">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="5" HasShadow="True" CornerRadius="5">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Nombre}" FontAttributes="Bold" FontSize="Medium"/>
+                                <Label Text="{Binding Campus.Nombre}" FontSize="Small"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

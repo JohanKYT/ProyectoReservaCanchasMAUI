@@ -15,4 +15,12 @@
         Title="Administradores"
         ContentTemplate="{DataTemplate local:AdministradoresPage}"
         Route="AdministradoresPage"/>
+    <ShellContent 
+        Title="Facultades"
+        ContentTemplate="{DataTemplate local:FacultadPage}"
+        Route="FacultadPage"/>
+    <ShellContent 
+        Title="Campus"
+        ContentTemplate="{DataTemplate local:CampusPage}"
+        Route="CampusPage"/>
 </Shell>
