@@ -1,17 +1,22 @@
 using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
+using ProyectoReservaCanchasMAUI.DTOs;
+
 
 namespace ProyectoReservaCanchasMAUI.Views;
 
 public partial class AdministradoresPage : ContentPage
 {
     private readonly AdministradorService _service;
+    private readonly FacultadService _facultadService;
     private Administrador _adminSeleccionado;
+    private List<FacultadDTO> _facultades = new();
 
     public AdministradoresPage()
     {
         InitializeComponent();
         _service = new AdministradorService();
+        _facultadService = new FacultadService();
         CargarDatos();
     }
 
@@ -19,10 +24,13 @@ public partial class AdministradoresPage : ContentPage
     {
         var lista = await _service.ObtenerAdministradoresAsync();
         AdministradoresList.ItemsSource = lista;
+        _facultades = await _facultadService.ObtenerFacultadesAsync();
+        pickerFacultad.ItemsSource = _facultades;
     }
 
     private async void OnAgregarClicked(object sender, EventArgs e)
     {
+        var facultadSeleccionada = pickerFacultad.SelectedItem as FacultadDTO;
         var nuevoAdmin = new Administrador
         {
             Nombre = entryNombre.Text,
@@ -32,7 +40,7 @@ public partial class AdministradoresPage : ContentPage
             Direccion = entryDireccion.Text,
             FechaNacimiento = pickerFechaNacimiento.Date,
             TipoPersona = "Administrador",
-            FacultadId = int.TryParse(entryFacultadId.Text, out int facId) ? facId : 0
+            FacultadId = facultadSeleccionada?.Id ?? 0
         };
 
         bool exito = await _service.AgregarAdministradorAsync(nuevoAdmin);
@@ -59,7 +67,7 @@ public partial class AdministradoresPage : ContentPage
             entryTelefono.Text = _adminSeleccionado.Telefono;
             entryDireccion.Text = _adminSeleccionado.Direccion;
             pickerFechaNacimiento.Date = _adminSeleccionado.FechaNacimiento;
-            entryFacultadId.Text = _adminSeleccionado.FacultadId.ToString();
+            pickerFacultad.SelectedItem = _facultades.FirstOrDefault(f => f.Id == _adminSeleccionado.FacultadId);
         }
     }
 
@@ -70,14 +78,14 @@ public partial class AdministradoresPage : ContentPage
             await DisplayAlert("Aviso", "Selecciona un administrador para actualizar", "OK");
             return;
         }
-
+        var facultadSeleccionada = pickerFacultad.SelectedItem as FacultadDTO;
         _adminSeleccionado.Nombre = entryNombre.Text;
         _adminSeleccionado.Correo = entryCorreo.Text;
         _adminSeleccionado.Password = entryPassword.Text;
         _adminSeleccionado.Telefono = entryTelefono.Text;
         _adminSeleccionado.Direccion = entryDireccion.Text;
         _adminSeleccionado.FechaNacimiento = pickerFechaNacimiento.Date;
-        _adminSeleccionado.FacultadId = int.TryParse(entryFacultadId.Text, out int facId) ? facId : 0;
+        _adminSeleccionado.FacultadId = facultadSeleccionada?.Id ?? 0;
 
         bool exito = await _service.ActualizarAdministradorAsync(_adminSeleccionado);
         if (exito)
@@ -124,7 +132,7 @@ public partial class AdministradoresPage : ContentPage
         entryTelefono.Text = string.Empty;
         entryDireccion.Text = string.Empty;
         pickerFechaNacimiento.Date = DateTime.Today;
-        entryFacultadId.Text = string.Empty;
+        pickerFacultad.SelectedItem = null;
         _adminSeleccionado = null;
         AdministradoresList.SelectedItem = null;
     }

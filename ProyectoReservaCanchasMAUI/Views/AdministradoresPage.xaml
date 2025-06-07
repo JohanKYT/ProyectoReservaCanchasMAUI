@@ -31,7 +31,10 @@
             <Entry x:Name="entryTelefono" Placeholder="Teléfono" Keyboard="Telephone" />
             <Entry x:Name="entryDireccion" Placeholder="Dirección" />
             <DatePicker x:Name="pickerFechaNacimiento" />
-            <Entry x:Name="entryFacultadId" Placeholder="Facultad ID" Keyboard="Numeric" />
+            <Picker x:Name="pickerFacultad"
+            Title="Seleccione una Facultad"
+            ItemDisplayBinding="{Binding Nombre}" />
+
 
             <!-- Botones -->
             <Button Text="Agregar Administrador" Clicked="OnAgregarClicked" />
