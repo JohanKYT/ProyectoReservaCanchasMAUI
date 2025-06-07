@@ -15,4 +15,8 @@
         Title="Administradores"
         ContentTemplate="{DataTemplate local:AdministradoresPage}"
         Route="AdministradoresPage"/>
+    <ShellContent 
+        Title="Facultades"
+        ContentTemplate="{DataTemplate local:FacultadesPage}"
+        Route="FacultadesPage"/>
 </Shell>
