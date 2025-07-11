@@ -1,50 +1,50 @@
 ﻿using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.DTOs;
 using System.Net.Http.Json;
+using ProyectoReservaCanchasMAUI.Data;
 
 namespace ProyectoReservaCanchasMAUI.Services;
 
 public class CampusService
 {
     private readonly HttpClient _httpClient;
+    private readonly AppDatabase _db;
 
-    public CampusService()
+    public CampusService(AppDatabase db)
     {
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri("https://localhost:7004/") // Cambia por la URL de tu API
         };
+        _db = db;
     }
-
-    public async Task<List<CampusDTO>> ObtenerCampusAsync()
+    public async Task SincronizarCampusDesdeApiAsync()
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<List<CampusDTO>>("api/Campus");
-            return response ?? new List<CampusDTO>();
+            var listaDTO = await _httpClient.GetFromJsonAsync<List<CampusDTO>>("api/Campus");
+            if (listaDTO == null) return;
+
+            foreach (var dto in listaDTO)
+            {
+                var campus = new Campus
+                {
+                    Id = dto.CampusId,
+                    Nombre = dto.Nombre,
+                    Direccion = dto.Direccion
+                };
+                await _db.GuardarCampusAsync(campus);
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            return new List<CampusDTO>();
+            Console.WriteLine($"Error al sincronizar: {ex.Message}");
         }
     }
+    public Task<List<Campus>> ObtenerCampusLocalAsync() => _db.ObtenerCampusAsync();
 
-    public async Task<bool> AgregarCampusAsync(CampusDTO campus)
-    {
-        var response = await _httpClient.PostAsJsonAsync("api/Campus", campus);
-        return response.IsSuccessStatusCode;
-    }
+    public Task<int> GuardarCampusAsync(Campus campus) => _db.GuardarCampusAsync(campus);
 
-    public async Task<bool> ActualizarCampusAsync(CampusDTO campus)
-    {
-        var response = await _httpClient.PutAsJsonAsync($"api/Campus/{campus.CampusId}", campus);
-        return response.IsSuccessStatusCode;
-    }
-
-    public async Task<bool> EliminarCampusAsync(int id)
-    {
-        var response = await _httpClient.DeleteAsync($"api/Campus/{id}");
-        return response.IsSuccessStatusCode;
-    }
+    public Task<int> EliminarCampusAsync(Campus campus) => _db.EliminarCampusAsync(campus);
 }
 
