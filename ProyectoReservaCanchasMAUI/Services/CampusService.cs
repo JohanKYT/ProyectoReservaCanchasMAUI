@@ -46,5 +46,28 @@ public class CampusService
     public Task<int> GuardarCampusAsync(Campus campus) => _db.GuardarCampusAsync(campus);
 
     public Task<int> EliminarCampusAsync(Campus campus) => _db.EliminarCampusAsync(campus);
+    public async Task GuardarCampusTotalAsync(Campus campus)
+    {
+        await _db.GuardarCampusAsync(campus);
+
+        try
+        {
+            var dto = new CampusDTO
+            {
+                CampusId = campus.Id,
+                Nombre = campus.Nombre,
+                Direccion = campus.Direccion
+            };
+
+            var response = await _httpClient.PostAsJsonAsync("api/Campus", dto);
+            Console.WriteLine(response.IsSuccessStatusCode
+                ? "Enviado a la API exitosamente"
+                : "Fallo al subir a la API");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al subir a la API: {ex.Message}");
+        }
+    }
 }
 
