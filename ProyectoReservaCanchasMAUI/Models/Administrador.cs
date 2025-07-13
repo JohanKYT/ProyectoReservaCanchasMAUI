@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SQLite;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,8 @@ namespace ProyectoReservaCanchasMAUI.Models
         }
 
         public int FacultadId { get; set; }
-        public Facultad? Facultad { get; set; }
+        [Ignore]
+        public string NombreFacultad { get; set; } = string.Empty;
         public bool Sincronizado { get; set; } = false; 
     }
 }

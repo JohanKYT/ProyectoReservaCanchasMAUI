@@ -1,11 +1,6 @@
 ﻿using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace ProyectoReservaCanchasMAUI.ViewModels
@@ -13,69 +8,102 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
     public class FacultadViewModel : BaseViewModel
     {
         private readonly FacultadService _service;
+        private readonly CampusService _campusService;
 
-        public ObservableCollection<Facultad> ListaFacultades { get; set; } = new();
+        public ObservableCollection<Facultad> ListaFacultades { get; } = new();
+        public ObservableCollection<Campus> ListaCampus { get; } = new();
+
+        private Facultad _nuevaFacultad = new();
+        public Facultad NuevaFacultad
+        {
+            get => _nuevaFacultad;
+            set { _nuevaFacultad = value; OnPropertyChanged(); }
+        }
+
+        private Facultad _facultadSeleccionada;
+        public Facultad FacultadSeleccionada
+        {
+            get => _facultadSeleccionada;
+            set { _facultadSeleccionada = value; OnPropertyChanged(); }
+        }
+
+        private Campus _campusSeleccionado;
+        public Campus CampusSeleccionado
+        {
+            get => _campusSeleccionado;
+            set
+            {
+                _campusSeleccionado = value;
+                if (value != null)
+                    NuevaFacultad.CampusId = value.CampusId;
+
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand CargarCommand { get; }
         public ICommand GuardarCommand { get; }
         public ICommand EliminarCommand { get; }
 
-        private Facultad _nueva = new();
-        public Facultad NuevaFacultad
-        {
-            get => _nueva;
-            set { _nueva = value; OnPropertyChanged(); }
-        }
-
-        private Facultad _seleccionada;
-        public Facultad FacultadSeleccionada
-        {
-            get => _seleccionada;
-            set
-            {
-                _seleccionada = value;
-                OnPropertyChanged();
-                if (_seleccionada != null)
-                    NuevaFacultad = new Facultad { FacultadId = _seleccionada.FacultadId, 
-                    Nombre = _seleccionada.Nombre, 
-                    CampusId = _seleccionada.CampusId };
-            }
-        }
-
-        public FacultadViewModel(FacultadService service)
+        public FacultadViewModel(FacultadService service, CampusService campusService)
         {
             _service = service;
-            CargarCommand = new Command(async () => await Cargar());
-            GuardarCommand = new Command(async () => await Guardar());
-            EliminarCommand = new Command(async () => await Eliminar());
-        }
+            _campusService = campusService;
 
-
-        private async Task Cargar()
-        {
-            await _service.SincronizarLocalesConApiAsync();
-            await _service.SincronizarDesdeApiAsync();
-
-            ListaFacultades.Clear();
-            var lista = await _service.ObtenerFacultadesLocalesAsync();
-            foreach (var f in lista) ListaFacultades.Add(f);
-        }
-
-        private async Task Guardar()
-        {
-            await _service.GuardarFacultadTotalAsync(NuevaFacultad);
-            await Cargar();
-            NuevaFacultad = new Facultad();
-        }
-
-        private async Task Eliminar()
-        {
-            if (FacultadSeleccionada != null)
+            CargarCommand = new Command(async () =>
             {
-                await _service.EliminarTotalAsync(FacultadSeleccionada);
-                await Cargar();
+                var listaLocal = await _service.ObtenerFacultadesLocalesAsync();
+                ListaFacultades.Clear();
+                foreach (var f in listaLocal)
+                    ListaFacultades.Add(f);
+
+                _ = Task.Run(async () =>
+                {
+                    await _service.SincronizarLocalesConApiAsync();
+                    await _service.SincronizarDesdeApiAsync();
+
+                    var listaActualizada = await _service.ObtenerFacultadesLocalesAsync();
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        ListaFacultades.Clear();
+                        foreach (var f in listaActualizada)
+                            ListaFacultades.Add(f);
+                    });
+                });
+            });
+
+            GuardarCommand = new Command(async () =>
+            {
+                if (string.IsNullOrWhiteSpace(NuevaFacultad?.Nombre) || CampusSeleccionado == null)
+                    return;
+
+                NuevaFacultad.CampusId = CampusSeleccionado.CampusId;
+                await _service.GuardarFacultadTotalAsync(NuevaFacultad);
                 NuevaFacultad = new Facultad();
+                CargarCommand.Execute(null);
+            });
+
+            EliminarCommand = new Command(async () =>
+            {
+                if (FacultadSeleccionada == null) return;
+
+                await _service.EliminarTotalAsync(FacultadSeleccionada);
+                ListaFacultades.Remove(FacultadSeleccionada);
                 FacultadSeleccionada = null;
-            }
+            });
+
+            // Carga inicial de Campus para Picker
+            CargarCampus();
+        }
+
+        private async void CargarCampus()
+        {
+            var lista = await _campusService.ObtenerCampusLocalAsync(); // <-- aquí la corrección
+            ListaCampus.Clear();
+            foreach (var c in lista)
+                ListaCampus.Add(c);
         }
     }
 }
+
+

@@ -13,8 +13,10 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
     public class CanchaViewModel : BaseViewModel
     {
         private readonly CanchaService _service;
+        private readonly CampusService _campusService;
 
         public ObservableCollection<Cancha> ListaCanchas { get; set; } = new();
+        public ObservableCollection<Campus> ListaCampus { get; set; } = new();
 
         public ICommand CargarCommand { get; }
         public ICommand GuardarCommand { get; }
@@ -42,15 +44,31 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                         CanchaId = value.CanchaId,
                         Nombre = value.Nombre,
                         Tipo = value.Tipo,
-                        Disponible = value.Disponible
+                        Disponible = value.Disponible,
+                        CampusId = value.CampusId
                     };
+
+                    CampusSeleccionado = ListaCampus.FirstOrDefault(c => c.CampusId == value.CampusId);
                 }
             }
         }
+        private Campus _campusSeleccionado;
+        public Campus CampusSeleccionado
+        {
+            get => _campusSeleccionado;
+            set
+            {
+                _campusSeleccionado = value;
+                OnPropertyChanged();
+                if (NuevaCancha != null && _campusSeleccionado != null)
+                    NuevaCancha.CampusId = _campusSeleccionado.CampusId;
+            }
+        }
 
-        public CanchaViewModel(CanchaService service)
+        public CanchaViewModel(CanchaService service, CampusService campusService)
         {
             _service = service;
+            _campusService = campusService;
             CargarCommand = new Command(async () => await Cargar());
             GuardarCommand = new Command(async () => await Guardar());
             EliminarCommand = new Command(async () => await Eliminar());
@@ -58,11 +76,26 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
         private async Task Cargar()
         {
+            await _service.SincronizarLocalesConApiAsync();
             await _service.SincronizarDesdeApiAsync();
+
+            var listaCampus = await _campusService.ObtenerCampusLocalAsync();
+            var campusDict = listaCampus.ToDictionary(c => c.CampusId, c => c.Nombre);
+
+            ListaCampus.Clear();
+            foreach (var campus in listaCampus)
+                ListaCampus.Add(campus);
+
             ListaCanchas.Clear();
             var lista = await _service.ObtenerCanchasLocalesAsync();
             foreach (var cancha in lista)
+            {
+                cancha.NombreCampus = campusDict.TryGetValue(cancha.CampusId, out var nombreCampus)
+                    ? nombreCampus
+                    : "Desconocido";
+
                 ListaCanchas.Add(cancha);
+            }
         }
 
         private async Task Guardar()

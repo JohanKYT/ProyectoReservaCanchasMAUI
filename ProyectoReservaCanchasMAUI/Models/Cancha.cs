@@ -17,6 +17,14 @@ namespace ProyectoReservaCanchasMAUI.Models
         public string Tipo { get; set; } = string.Empty;
 
         public bool Disponible { get; set; } = true;
-        public bool Sincronizado { get; set; } = false;  
+
+        public int CampusId { get; set; } 
+
+        public bool Sincronizado { get; set; } = false;  // Para sincronización
+                                                        
+        // Propiedad NO mapeada, solo para mostrar en UI
+        [Ignore] // Para que SQLite la ignore
+        public string NombreCampus { get; set; } = string.Empty;
+
     }
 }

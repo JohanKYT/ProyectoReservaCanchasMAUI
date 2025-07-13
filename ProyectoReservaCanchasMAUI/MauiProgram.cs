@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using ProyectoReservaCanchasMAUI.Data;
-using ProyectoReservaCanchasMAUI.Interfaces;
 using ProyectoReservaCanchasMAUI.Services;
 using ProyectoReservaCanchasMAUI.ViewModels;
+using ProyectoReservaCanchasMAUI.Views;
+
 
 namespace ProyectoReservaCanchasMAUI
 {
@@ -13,33 +14,34 @@ namespace ProyectoReservaCanchasMAUI
             var builder = MauiApp.CreateBuilder();
             builder.Services.AddSingleton(new HttpClient
             {
-                BaseAddress = new Uri("https://localhost:7004/")
+                BaseAddress = new Uri("https://localhost:7004/") // Cambiar a IP si usas móvil físico
             });
+
+            // Base de datos local
             builder.Services.AddSingleton<AppDatabase>(s =>
             {
                 var dbPath = Path.Combine(FileSystem.AppDataDirectory, "reserva_canchas.db");
                 return new AppDatabase(dbPath);
             });
 
+            // Servicios
             builder.Services.AddSingleton<AdministradorService>();
             builder.Services.AddSingleton<FacultadService>();
             builder.Services.AddSingleton<CampusService>();
             builder.Services.AddSingleton<CanchaService>();
 
-            builder.Services.AddSingleton<SincronizacionViewModel>();
-            builder.Services.AddSingleton<ProyectoReservaCanchasMAUI.Views.SincronizacionPage>();
-            builder.Services.AddTransient<AdministradorViewModel>();
-            builder.Services.AddTransient<ProyectoReservaCanchasMAUI.Views.AdministradoresPage>();
-            builder.Services.AddTransient<CanchaViewModel>();
-            builder.Services.AddTransient<ProyectoReservaCanchasMAUI.Views.CanchaPage>();
-            builder.Services.AddTransient<CampusViewModel>();
-            builder.Services.AddTransient<ProyectoReservaCanchasMAUI.Views.CampusPage>();
+            // ViewModels y Vistas
+            builder.Services.AddSingleton<CampusViewModel>();
+            builder.Services.AddTransient<CampusPage>();
 
-            // Registrar ISincronizable
-            builder.Services.AddSingleton<ISincronizable, CampusService>();
-            builder.Services.AddSingleton<ISincronizable, FacultadService>();
-            builder.Services.AddSingleton<ISincronizable, CanchaService>();
-            builder.Services.AddSingleton<ISincronizable, AdministradorService>();
+            builder.Services.AddSingleton<FacultadViewModel>();
+            builder.Services.AddTransient<FacultadPage>();
+
+            builder.Services.AddTransient<AdministradorViewModel>();
+            builder.Services.AddTransient<AdministradoresPage>();
+
+            builder.Services.AddTransient<CanchaViewModel>();
+            builder.Services.AddTransient<CanchaPage>();
 
 
             builder

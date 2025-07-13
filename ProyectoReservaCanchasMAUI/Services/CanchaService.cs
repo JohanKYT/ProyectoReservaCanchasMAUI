@@ -2,11 +2,11 @@
 using ProyectoReservaCanchasMAUI.DTOs;
 using ProyectoReservaCanchasMAUI.Data;
 using System.Net.Http.Json;
-using ProyectoReservaCanchasMAUI.Interfaces;
+
 
 namespace ProyectoReservaCanchasMAUI.Services;
 
-public class CanchaService : ISincronizable
+public class CanchaService
 {
     private readonly HttpClient _httpClient;
     private readonly AppDatabase _db;

@@ -1,10 +1,10 @@
 ﻿using ProyectoReservaCanchasMAUI.Data;
 using ProyectoReservaCanchasMAUI.DTOs;
-using ProyectoReservaCanchasMAUI.Interfaces;
+
 using ProyectoReservaCanchasMAUI.Models;
 using System.Net.Http.Json;
 
-public class AdministradorService : ISincronizable
+public class AdministradorService 
 {
     private readonly HttpClient _httpClient;
     private readonly AppDatabase _db;

@@ -1,12 +1,47 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:ProyectoReservaCanchasMAUI.ViewModels"
              x:Class="ProyectoReservaCanchasMAUI.Views.CanchaPage"
-             Title="CanchaPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             Title="Cancha">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Entry Placeholder="Nombre" Text="{Binding NuevaCancha.Nombre}" />
+            <Entry Placeholder="Tipo" Text="{Binding NuevaCancha.Tipo}" />
+
+            <Label Text="Disponible" />
+            <Switch IsToggled="{Binding NuevaCancha.Disponible}" />
+
+            <Label Text="Campus" />
+            <Picker ItemsSource="{Binding ListaCampus}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding CampusSeleccionado}" />
+
+            <Button Text="Guardar" Command="{Binding GuardarCommand}" />
+            <Button Text="Cargar" Command="{Binding CargarCommand}" />
+            <Button Text="Eliminar" Command="{Binding EliminarCommand}" />
+
+            <Label Text="Lista de Canchas" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding ListaCanchas}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding CanchaSeleccionada, Mode=TwoWay}"
+                            HeightRequest="400">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="5" HasShadow="True" CornerRadius="5">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Nombre}" FontAttributes="Bold" />
+                                <Label Text="{Binding Tipo}" />
+                                <Label Text="{Binding NombreCampus}" FontSize="12" TextColor="Gray" />
+                                <Label Text="{Binding Disponible, StringFormat='Disponible: {0}'}" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

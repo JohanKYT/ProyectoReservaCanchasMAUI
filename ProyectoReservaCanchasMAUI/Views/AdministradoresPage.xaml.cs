@@ -1,4 +1,5 @@
 
+using ProyectoReservaCanchasMAUI.Services;
 using ProyectoReservaCanchasMAUI.ViewModels;
 
 namespace ProyectoReservaCanchasMAUI.Views;
@@ -9,11 +10,12 @@ public partial class AdministradoresPage : ContentPage
     {
         InitializeComponent();
 
-        var service = App.Current?.Handler?.MauiContext?.Services.GetService<AdministradorService>();
+        var administradorService = App.Current?.Handler?.MauiContext?.Services.GetService<AdministradorService>();
+        var facultadService = App.Current?.Handler?.MauiContext?.Services.GetService<FacultadService>();
 
-        if (service != null)
+        if (administradorService != null && facultadService != null)
         {
-            var viewModel = new AdministradorViewModel(service);
+            var viewModel = new AdministradorViewModel(administradorService, facultadService);
             BindingContext = viewModel;
             viewModel.CargarCommand.Execute(null);
         }

@@ -14,6 +14,7 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
     public class AdministradorViewModel : BaseViewModel
     {
         private readonly AdministradorService _service;
+        private readonly FacultadService _facultadService;
 
         public ObservableCollection<Administrador> ListaAdministradores { get; set; } = new();
         public Administrador NuevoAdministrador { get; set; } = new();
@@ -23,21 +24,34 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
         public ICommand GuardarCommand { get; }
         public ICommand EliminarCommand { get; }
 
-        public AdministradorViewModel(AdministradorService service)
+        public AdministradorViewModel(AdministradorService service, FacultadService facultadService)
         {
             _service = service;
-
+            _facultadService = facultadService;
             CargarCommand = new Command(async () => await Cargar());
             GuardarCommand = new Command(async () => await Guardar());
             EliminarCommand = new Command(async () => await Eliminar());
+            _facultadService = facultadService;
         }
 
         private async Task Cargar()
         {
+            // Cargar facultades locales para obtener nombres
+            var listaFacultades = await _facultadService.ObtenerFacultadesLocalesAsync();
+            var facultadDict = listaFacultades.ToDictionary(f => f.FacultadId, f => f.Nombre);
+
             ListaAdministradores.Clear();
             var datos = await _service.ObtenerAdministradoresLocalesAsync();
-            foreach (var item in datos)
-                ListaAdministradores.Add(item);
+
+            foreach (var admin in datos)
+            {
+                // Asignar nombre de facultad para mostrar en UI
+                admin.NombreFacultad = facultadDict.TryGetValue(admin.FacultadId, out var nombreFacultad)
+                    ? nombreFacultad
+                    : "Desconocido";
+
+                ListaAdministradores.Add(admin);
+            }
         }
 
         private async Task Guardar()

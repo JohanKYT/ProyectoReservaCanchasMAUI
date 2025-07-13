@@ -57,6 +57,7 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
         public CampusViewModel(CampusService service)
         {
             _service = service;
+
             CargarCommand = new Command(async () => await CargarCampus());
             GuardarCommand = new Command(async () => await GuardarCampus());
             EliminarCommand = new Command(async () => await EliminarCampus());
@@ -64,12 +65,6 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
         private async Task CargarCampus()
         {
-            // Sincronizar locales primero (SQLite → API)
-            await _service.SincronizarLocalesConApiAsync();
-
-            // Sincronizar desde API (API → SQLite)
-            await _service.SincronizarDesdeApiAsync();
-
             ListaCampus.Clear();
             var lista = await _service.ObtenerCampusLocalAsync();
             foreach (var item in lista) ListaCampus.Add(item);
@@ -78,16 +73,31 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
         private async Task GuardarCampus()
         {
             await _service.GuardarCampusTotalAsync(NuevoCampus);
-            await CargarCampus();
+
+            // Si es nuevo, agregar; si es edición, reemplazar en la lista
+            var existente = ListaCampus.FirstOrDefault(c => c.CampusId == NuevoCampus.CampusId);
+            if (existente != null)
+            {
+                var index = ListaCampus.IndexOf(existente);
+                ListaCampus[index] = NuevoCampus;
+            }
+            else
+            {
+                ListaCampus.Add(NuevoCampus);
+            }
+
             NuevoCampus = new Campus();
+            CampusSeleccionado = null;
         }
-        
+
+
         private async Task EliminarCampus()
         {
             if (CampusSeleccionado != null)
             {
                 await _service.EliminarCampusAsync(CampusSeleccionado);
-                await CargarCampus();
+                ListaCampus.Remove(CampusSeleccionado);
+
                 NuevoCampus = new Campus();
                 CampusSeleccionado = null;
             }

@@ -7,10 +7,11 @@
     Shell.FlyoutBehavior="Flyout"
     Title="ProyectoReservaCanchasMAUI">
 
+
     <ShellContent
-        Title="Sincronización"
-        ContentTemplate="{DataTemplate local:SincronizacionPage}"
-        Route="SincronizacionPage" />
+        Title="Home"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage" />
     <ShellContent 
         Title="Administradores"
         ContentTemplate="{DataTemplate local:AdministradoresPage}"

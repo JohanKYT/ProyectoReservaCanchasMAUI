@@ -6,23 +6,19 @@ namespace ProyectoReservaCanchasMAUI.Views;
 
 public partial class CampusPage : ContentPage
 {
+    private readonly CampusViewModel _viewModel;
     public CampusPage()
     {
         InitializeComponent();
+        // Obtener el ViewModel desde DI (servicios registrados)
+        _viewModel = App.Current?.Handler?.MauiContext?.Services.GetService<CampusViewModel>();
 
-        // Obtener el servicio ya creado por MAUI
-        var campusService = App.Current?.Handler?.MauiContext?.Services.GetService<CampusService>();
+        if (_viewModel == null)
+            throw new Exception("CampusViewModel no pudo ser resuelto desde el contenedor");
 
-        if (campusService != null)
-        {
-            var viewModel = new CampusViewModel(campusService);
-            BindingContext = viewModel;
-            viewModel.CargarCommand.Execute(null); // opcional
-        }
-        else
-        {
-            // Manejo de error si no se pudo obtener el servicio
-            Console.WriteLine("CampusService no está disponible.");
-        }
+        BindingContext = _viewModel;
+
+        // Cargar datos al iniciar
+        _viewModel.CargarCommand.Execute(null);
     }
 }

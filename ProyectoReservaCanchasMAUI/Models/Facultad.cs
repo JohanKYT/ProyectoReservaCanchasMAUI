@@ -13,7 +13,8 @@ namespace ProyectoReservaCanchasMAUI.Models
         public int FacultadId { get; set; }
         public string Nombre { get; set; }
         public int CampusId { get; set; }
-        public Campus? Campus { get; set; }
+        [Ignore] // <-- evita que SQLite la intente guardar
+        public string NombreCampus { get; set; } = string.Empty;
         public bool Sincronizado { get; set; } = false;
     }
 }
