@@ -1,57 +1,58 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:ProyectoReservaCanchasMAUI.ViewModels"
              x:Class="ProyectoReservaCanchasMAUI.Views.AdministradoresPage"
-             Title="Administradores">
+             Title="Administrador">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">
 
-            <!-- Formulario -->
-            <Entry x:Name="entryNombre" Placeholder="Nombre" />
-            <Entry x:Name="entryCorreo" Placeholder="Correo" Keyboard="Email" />
-            <Grid>
-                <Entry 
-                    x:Name="entryPassword"
-                    Placeholder="Contraseña"
-                    IsPassword="True"
-                    Margin="0,0,60,0" /> 
-                <ImageButton 
-                    x:Name="btnTogglePassword"
-                    Source="eye_off.png"
-                    BackgroundColor="GhostWhite"
-                    WidthRequest="20"
-                    HeightRequest="20"
-                    Margin="15,0,10,0" 
-                    HorizontalOptions="End"
-                    VerticalOptions="Center"
-                    Clicked="OnTogglePasswordVisibilityClicked"/>
-            </Grid>
+            <Entry Placeholder="Banner ID" 
+                   Keyboard="Numeric"
+                   Text="{Binding NuevoAdministrador.BannerId}" />
 
-            <Entry x:Name="entryTelefono" Placeholder="Teléfono" Keyboard="Telephone" />
-            <Entry x:Name="entryDireccion" Placeholder="Dirección" />
-            <DatePicker x:Name="pickerFechaNacimiento" />
-            <Entry x:Name="entryFacultadId" Placeholder="Facultad ID" Keyboard="Numeric" />
+            <Entry Placeholder="Nombre"
+                   Text="{Binding NuevoAdministrador.Nombre}" />
 
-            <!-- Botones -->
-            <Button Text="Agregar Administrador" Clicked="OnAgregarClicked" />
-            <Button Text="Actualizar Administrador" Clicked="OnActualizarClicked" />
-            <Button Text="Eliminar Administrador" Clicked="OnEliminarClicked" />
+            <Entry Placeholder="Correo"
+                   Text="{Binding NuevoAdministrador.Correo}" />
 
-            <!-- Lista de administradores -->
-            <Label Text="Lista de Administradores" FontAttributes="Bold" FontSize="Medium" />
+            <Entry Placeholder="Contraseña"
+                   IsPassword="True"
+                   Text="{Binding NuevoAdministrador.Password}" />
 
-            <CollectionView x:Name="AdministradoresList"
+            <Entry Placeholder="Teléfono"
+                   Keyboard="Telephone"
+                   Text="{Binding NuevoAdministrador.Telefono}" />
+
+            <Entry Placeholder="Dirección"
+                   Text="{Binding NuevoAdministrador.Direccion}" />
+
+            <DatePicker Date="{Binding NuevoAdministrador.FechaNacimiento}" />
+
+            <Label Text="Facultad" />
+            <Picker ItemsSource="{Binding ListaFacultades}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding FacultadSeleccionada}" />
+
+            <Button Text="Guardar" Command="{Binding GuardarCommand}" />
+            <Button Text="Cargar" Command="{Binding CargarCommand}" />
+            <Button Text="Eliminar" Command="{Binding EliminarCommand}" />
+
+            <Label Text="Lista de Administradores" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding ListaAdministradores}"
                             SelectionMode="Single"
-                            SelectionChanged="OnSeleccionarAdmin"
+                            SelectedItem="{Binding AdministradorSeleccionado, Mode=TwoWay}"
                             HeightRequest="500">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Frame Padding="10" Margin="5" HasShadow="True" CornerRadius="5">
                             <VerticalStackLayout>
-                                <Label Text="{Binding Nombre}" FontAttributes="Bold" FontSize="Medium"/>
-                                <Label Text="{Binding Correo}" FontSize="Small"/>
-                                <Label Text="{Binding Facultad.Nombre}" FontAttributes="Italic" FontSize="Small"/>
+                                <Label Text="{Binding Nombre}" FontAttributes="Bold" />
+                                <Label Text="{Binding Correo}" />
+                                <Label Text="{Binding Telefono}" />
+                                <Label Text="{Binding Facultad.Nombre}" FontSize="12" TextColor="Gray" />
                             </VerticalStackLayout>
                         </Frame>
                     </DataTemplate>
@@ -60,7 +61,6 @@
 
         </VerticalStackLayout>
     </ScrollView>
-
 </ContentPage>
 
 

@@ -15,5 +15,6 @@ namespace ProyectoReservaCanchasMAUI.Models
 
         public int FacultadId { get; set; }
         public Facultad? Facultad { get; set; }
+        public bool Sincronizado { get; set; } = false; 
     }
 }

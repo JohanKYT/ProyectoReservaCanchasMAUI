@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Maui.Controls;
+
+
 
 namespace ProyectoReservaCanchasMAUI.ViewModels
 {
@@ -43,7 +46,7 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 {
                     NuevoCampus = new Campus
                     {
-                        Id = _campusSeleccionado.Id,
+                        CampusId = _campusSeleccionado.CampusId,
                         Nombre = _campusSeleccionado.Nombre,
                         Direccion = _campusSeleccionado.Direccion
                     };
@@ -61,25 +64,31 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
         private async Task CargarCampus()
         {
-            await _service.SincronizarCampusDesdeApiAsync(); // ✅ Sincroniza desde API
+            // Sincronizar locales primero (SQLite → API)
+            await _service.SincronizarLocalesConApiAsync();
+
+            // Sincronizar desde API (API → SQLite)
+            await _service.SincronizarDesdeApiAsync();
+
             ListaCampus.Clear();
             var lista = await _service.ObtenerCampusLocalAsync();
             foreach (var item in lista) ListaCampus.Add(item);
         }
+
         private async Task GuardarCampus()
         {
-            await _service.GuardarCampusAsync(NuevoCampus);
+            await _service.GuardarCampusTotalAsync(NuevoCampus);
             await CargarCampus();
-            NuevoCampus = new();
+            NuevoCampus = new Campus();
         }
-
+        
         private async Task EliminarCampus()
         {
             if (CampusSeleccionado != null)
             {
                 await _service.EliminarCampusAsync(CampusSeleccionado);
                 await CargarCampus();
-                NuevoCampus = new();
+                NuevoCampus = new Campus();
                 CampusSeleccionado = null;
             }
         }

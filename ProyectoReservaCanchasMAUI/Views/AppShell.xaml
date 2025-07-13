@@ -8,9 +8,9 @@
     Title="ProyectoReservaCanchasMAUI">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Title="Sincronización"
+        ContentTemplate="{DataTemplate local:SincronizacionPage}"
+        Route="SincronizacionPage" />
     <ShellContent 
         Title="Administradores"
         ContentTemplate="{DataTemplate local:AdministradoresPage}"

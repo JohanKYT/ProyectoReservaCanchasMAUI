@@ -2,23 +2,21 @@
 using ProyectoReservaCanchasMAUI.DTOs;
 using System.Net.Http.Json;
 using ProyectoReservaCanchasMAUI.Data;
+using ProyectoReservaCanchasMAUI.Interfaces;
 
 namespace ProyectoReservaCanchasMAUI.Services;
 
-public class CampusService
+public class CampusService : ISincronizable
 {
     private readonly HttpClient _httpClient;
     private readonly AppDatabase _db;
 
-    public CampusService(AppDatabase db)
+    public CampusService(HttpClient httpClient, AppDatabase db)
     {
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri("https://localhost:7004/") // Cambia por la URL de tu API
-        };
+        _httpClient = httpClient;
         _db = db;
     }
-    public async Task SincronizarCampusDesdeApiAsync()
+    public async Task SincronizarDesdeApiAsync()
     {
         try
         {
@@ -29,7 +27,7 @@ public class CampusService
             {
                 var campus = new Campus
                 {
-                    Id = dto.CampusId,
+                    CampusId = dto.CampusId,
                     Nombre = dto.Nombre,
                     Direccion = dto.Direccion
                 };
@@ -41,33 +39,88 @@ public class CampusService
             Console.WriteLine($"Error al sincronizar: {ex.Message}");
         }
     }
+    public async Task GuardarCampusTotalAsync(Campus campus)
+    {
+        try
+        {
+            var dto = new CampusDTO
+            {
+                CampusId = campus.CampusId,
+                Nombre = campus.Nombre,
+                Direccion = campus.Direccion
+            };
+
+            HttpResponseMessage response;
+
+            if (campus.CampusId == 0)
+                response = await _httpClient.PostAsJsonAsync("api/Campus", dto);
+            else
+                response = await _httpClient.PutAsJsonAsync($"api/Campus/{campus.CampusId}", dto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                campus.Sincronizado = true;
+                Console.WriteLine("Guardado y sincronizado con API.");
+            }
+            else
+            {
+                campus.Sincronizado = false;
+                Console.WriteLine("Guardado local, fallo al sincronizar con API.");
+            }
+        }
+        catch (Exception ex)
+        {
+            campus.Sincronizado = false;
+            Console.WriteLine($"Error al conectar con API, guardado local: {ex.Message}");
+        }
+
+        await _db.GuardarCampusAsync(campus);
+    }
+
+    public async Task SincronizarLocalesConApiAsync()
+    {
+        var localesNoSincronizados = await _db.ObtenerCampusNoSincronizadosAsync();
+
+        foreach (var campus in localesNoSincronizados)
+        {
+            try
+            {
+                var dto = new CampusDTO
+                {
+                    CampusId = campus.CampusId,
+                    Nombre = campus.Nombre,
+                    Direccion = campus.Direccion
+                };
+
+                HttpResponseMessage response;
+
+                if (campus.CampusId == 0)
+                    response = await _httpClient.PostAsJsonAsync("api/Campus", dto);
+                else
+                    response = await _httpClient.PutAsJsonAsync($"api/Campus/{campus.CampusId}", dto);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    campus.Sincronizado = true;
+                    await _db.GuardarCampusAsync(campus);
+                    Console.WriteLine($"Campus sincronizado: {campus.Nombre}");
+                }
+                else
+                {
+                    Console.WriteLine($"Error al sincronizar campus: {campus.Nombre}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Excepción al sincronizar campus: {ex.Message}");
+            }
+        }
+    }
     public Task<List<Campus>> ObtenerCampusLocalAsync() => _db.ObtenerCampusAsync();
 
     public Task<int> GuardarCampusAsync(Campus campus) => _db.GuardarCampusAsync(campus);
 
     public Task<int> EliminarCampusAsync(Campus campus) => _db.EliminarCampusAsync(campus);
-    public async Task GuardarCampusTotalAsync(Campus campus)
-    {
-        await _db.GuardarCampusAsync(campus);
 
-        try
-        {
-            var dto = new CampusDTO
-            {
-                CampusId = campus.Id,
-                Nombre = campus.Nombre,
-                Direccion = campus.Direccion
-            };
-
-            var response = await _httpClient.PostAsJsonAsync("api/Campus", dto);
-            Console.WriteLine(response.IsSuccessStatusCode
-                ? "Enviado a la API exitosamente"
-                : "Fallo al subir a la API");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al subir a la API: {ex.Message}");
-        }
-    }
 }
 

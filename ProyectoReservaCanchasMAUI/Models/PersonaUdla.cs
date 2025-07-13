@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SQLite;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace ProyectoReservaCanchasMAUI.Models
 {
     public abstract class PersonaUdla
     {
+        [PrimaryKey, AutoIncrement]
         public int BannerId { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;

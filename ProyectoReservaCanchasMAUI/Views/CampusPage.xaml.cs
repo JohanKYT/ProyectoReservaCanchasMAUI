@@ -10,12 +10,19 @@ public partial class CampusPage : ContentPage
     {
         InitializeComponent();
 
-        string dbPath = Path.Combine(FileSystem.AppDataDirectory, "campus.db");
-        var database = new AppDatabase(dbPath);
-        var service = new CampusService(database);
-        var viewModel = new CampusViewModel(service);
+        // Obtener el servicio ya creado por MAUI
+        var campusService = App.Current?.Handler?.MauiContext?.Services.GetService<CampusService>();
 
-        BindingContext = viewModel;
-        viewModel.CargarCommand.Execute(null); // Opcional: carga al iniciar
+        if (campusService != null)
+        {
+            var viewModel = new CampusViewModel(campusService);
+            BindingContext = viewModel;
+            viewModel.CargarCommand.Execute(null); // opcional
+        }
+        else
+        {
+            // Manejo de error si no se pudo obtener el servicio
+            Console.WriteLine("CampusService no está disponible.");
+        }
     }
 }

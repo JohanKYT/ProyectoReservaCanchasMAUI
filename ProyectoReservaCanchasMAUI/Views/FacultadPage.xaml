@@ -1,34 +1,33 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:ProyectoReservaCanchasMAUI.ViewModels"
+             xmlns:services="clr-namespace:ProyectoReservaCanchasMAUI.Services"
+             xmlns:data="clr-namespace:ProyectoReservaCanchasMAUI.Data"
              x:Class="ProyectoReservaCanchasMAUI.Views.FacultadPage"
              Title="Facultades">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">
 
-            <!-- Formulario -->
-            <Entry x:Name="entryNombre" Placeholder="Nombre Facultad" />
-            <Entry x:Name="entryCampusId" Placeholder="Campus ID" Keyboard="Numeric" />
+            <Entry Placeholder="Nombre Facultad" Text="{Binding NuevaFacultad.Nombre}" />
+            <Entry Placeholder="Campus ID" Keyboard="Numeric" Text="{Binding NuevaFacultad.CampusId}" />
 
-            <!-- Botones -->
-            <Button Text="Agregar Facultad" Clicked="OnAgregarClicked" />
-            <Button Text="Actualizar Facultad" Clicked="OnActualizarClicked" />
-            <Button Text="Eliminar Facultad" Clicked="OnEliminarClicked" />
+            <Button Text="Guardar" Command="{Binding GuardarCommand}" />
+            <Button Text="Cargar" Command="{Binding CargarCommand}" />
+            <Button Text="Eliminar" Command="{Binding EliminarCommand}" />
 
-            <!-- Lista de facultades -->
             <Label Text="Lista de Facultades" FontAttributes="Bold" FontSize="Medium" />
-
-            <CollectionView x:Name="FacultadesList"
+            <CollectionView ItemsSource="{Binding ListaFacultades}"
                             SelectionMode="Single"
-                            SelectionChanged="OnSeleccionarFacultad"
+                            SelectedItem="{Binding FacultadSeleccionada, Mode=TwoWay}"
                             HeightRequest="500">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Frame Padding="10" Margin="5" HasShadow="True" CornerRadius="5">
                             <VerticalStackLayout>
                                 <Label Text="{Binding Nombre}" FontAttributes="Bold" FontSize="Medium"/>
-                                <Label Text="{Binding Campus.Nombre}" FontSize="Small"/>
+                                <Label Text="Campus ID: {Binding CampusId}" FontSize="Small"/>
                             </VerticalStackLayout>
                         </Frame>
                     </DataTemplate>
@@ -37,5 +36,4 @@
 
         </VerticalStackLayout>
     </ScrollView>
-
 </ContentPage>

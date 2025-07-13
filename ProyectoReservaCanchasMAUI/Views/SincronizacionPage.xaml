@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoReservaCanchasMAUI.Views.SincronizacionPage"
+             Title="Sincronizacion De Datos">
+    <StackLayout Padding="20" Spacing="15">
+        <Label Text="Sincronización de datos locales y remotos"
+               FontSize="20"
+               HorizontalOptions="Center" />
+
+        <Button Text="Sincronizar Todo"
+                Clicked="OnSincronizarClicked"
+                BackgroundColor="#007aff"
+                TextColor="White" />
+
+        <ActivityIndicator IsRunning="{Binding IsSincronizando}"
+                           IsVisible="{Binding IsSincronizando}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+    </StackLayout>
+</ContentPage>
