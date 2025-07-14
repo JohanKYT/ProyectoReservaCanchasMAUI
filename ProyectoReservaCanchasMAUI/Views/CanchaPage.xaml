@@ -9,6 +9,7 @@
         <VerticalStackLayout Padding="20" Spacing="15">
 
             <Entry Placeholder="Nombre" Text="{Binding NuevaCancha.Nombre}" />
+
             <Entry Placeholder="Tipo" Text="{Binding NuevaCancha.Tipo}" />
 
             <Label Text="Disponible" />
@@ -17,13 +18,28 @@
             <Label Text="Campus" />
             <Picker ItemsSource="{Binding ListaCampus}"
                     ItemDisplayBinding="{Binding Nombre}"
-                    SelectedItem="{Binding CampusSeleccionado}" />
+                    SelectedItem="{Binding SelectedCampus}" />
 
-            <Button Text="Guardar" Command="{Binding GuardarCommand}" />
-            <Button Text="Cargar" Command="{Binding CargarCommand}" />
-            <Button Text="Eliminar" Command="{Binding EliminarCommand}" />
+            <!-- Mensaje de error visible si hay texto -->
+            <Label Text="{Binding MensajeError}" 
+                   TextColor="Red" 
+                   IsVisible="{Binding MensajeError, Converter={StaticResource InverseBooleanConverter}}" />
+
+
+                <Button Text="Guardar" 
+                    Command="{Binding GuardarCommand}" 
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+
+            <Button Text="Cargar" 
+                    Command="{Binding CargarCommand}" 
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+
+            <Button Text="Eliminar" 
+                    Command="{Binding EliminarCommand}" 
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
 
             <Label Text="Lista de Canchas" FontAttributes="Bold" />
+
             <CollectionView ItemsSource="{Binding ListaCanchas}"
                             SelectionMode="Single"
                             SelectedItem="{Binding CanchaSeleccionada, Mode=TwoWay}"

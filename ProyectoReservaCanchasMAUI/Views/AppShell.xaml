@@ -12,5 +12,7 @@
         <ShellContent Title="Facultad" ContentTemplate="{DataTemplate views:FacultadPage}" Route="facultad" />
         <ShellContent Title="Cancha" ContentTemplate="{DataTemplate views:CanchaPage}" Route="cancha" />
         <ShellContent Title="Administrador" ContentTemplate="{DataTemplate views:AdministradoresPage}" Route="administrador" />
+        <ShellContent Title="Carrera" ContentTemplate="{DataTemplate views:CarreraPage}" Route="carrera" />
+
     </TabBar>
 </Shell>

@@ -1,15 +1,15 @@
 ﻿using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Microsoft.Maui.ApplicationModel; // Para MainThread
 
 namespace ProyectoReservaCanchasMAUI.ViewModels
 {
     public class FacultadViewModel : BaseViewModel
     {
-        private readonly FacultadService _service;
+        private readonly FacultadService _facultadService;
         private readonly CampusService _campusService;
 
         public ObservableCollection<Facultad> ListaFacultades { get; } = new();
@@ -26,20 +26,54 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
         public Facultad FacultadSeleccionada
         {
             get => _facultadSeleccionada;
-            set { _facultadSeleccionada = value; OnPropertyChanged(); }
-        }
-
-        private Campus _campusSeleccionado;
-        public Campus CampusSeleccionado
-        {
-            get => _campusSeleccionado;
             set
             {
-                _campusSeleccionado = value;
-                if (value != null)
-                    NuevaFacultad.CampusId = value.CampusId;
-
+                _facultadSeleccionada = value;
                 OnPropertyChanged();
+
+                if (_facultadSeleccionada != null)
+                {
+                    NuevaFacultad = new Facultad
+                    {
+                        FacultadId = _facultadSeleccionada.FacultadId,
+                        Nombre = _facultadSeleccionada.Nombre,
+                        CampusId = _facultadSeleccionada.CampusId,
+                        Sincronizado = _facultadSeleccionada.Sincronizado
+                    };
+
+                    SelectedCampus = ListaCampus.FirstOrDefault(c => c.CampusId == _facultadSeleccionada.CampusId);
+                }
+                else
+                {
+                    SelectedCampus = null;
+                }
+            }
+        }
+        private Campus _selectedCampus;
+        public Campus SelectedCampus
+        {
+            get => _selectedCampus;
+            set
+            {
+                _selectedCampus = value;
+                OnPropertyChanged();
+
+                if (_selectedCampus != null)
+                {
+                    NuevaFacultad.CampusId = _selectedCampus.CampusId;
+                }
+            }
+        }
+
+        private bool _isBusy;
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set
+            {
+                _isBusy = value;
+                OnPropertyChanged();
+                UpdateCommandsCanExecute();
             }
         }
 
@@ -47,62 +81,125 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
         public ICommand GuardarCommand { get; }
         public ICommand EliminarCommand { get; }
 
-        public FacultadViewModel(FacultadService service, CampusService campusService)
+        public FacultadViewModel(FacultadService facultadService, CampusService campusService)
         {
-            _service = service;
+            _facultadService = facultadService;
             _campusService = campusService;
 
-            CargarCommand = new Command(async () => await CargarAsync());
-            GuardarCommand = new Command(async () => await GuardarAsync());
-            EliminarCommand = new Command(async () => await EliminarAsync());
-
-            // Cargar campus para picker al iniciar
-            _ = CargarCampusAsync();
+            CargarCommand = new Command(async () => await CargarAsync(), () => !IsBusy);
+            GuardarCommand = new Command(async () => await GuardarAsync(), () => !IsBusy);
+            EliminarCommand = new Command(async () => await EliminarAsync(), () => !IsBusy);
         }
 
-        private async Task CargarAsync()
+        private void UpdateCommandsCanExecute()
         {
-            ListaFacultades.Clear();
-
-            // Sincronizar primero
-            await _service.SincronizarLocalesConApiAsync();
-            await _service.SincronizarDesdeApiAsync();
-
-            var lista = await _service.ObtenerFacultadesLocalesAsync();
-            foreach (var f in lista)
-                ListaFacultades.Add(f);
+            ((Command)CargarCommand).ChangeCanExecute();
+            ((Command)GuardarCommand).ChangeCanExecute();
+            ((Command)EliminarCommand).ChangeCanExecute();
         }
+
+        public async Task CargarAsync()
+{
+    if (IsBusy) return;
+
+    try
+    {
+        IsBusy = true;
+
+        ListaFacultades.Clear();
+        ListaCampus.Clear();
+
+        // Sincronizar locales con API
+        await _facultadService.SincronizarLocalesConApiAsync();
+        await _facultadService.SincronizarDesdeApiAsync();
+
+        // Obtener facultades locales
+        var facultades = await _facultadService.ObtenerFacultadesLocalAsync();
+
+        // Obtener campus locales
+        var campus = await _campusService.ObtenerCampusLocalAsync();
+
+        // Asignar NombreCampus a cada facultad
+        foreach (var facultad in facultades)
+        {
+            var campusRelacionado = campus.FirstOrDefault(c => c.CampusId == facultad.CampusId);
+            facultad.NombreCampus = campusRelacionado?.Nombre ?? "Campus desconocido";  // Asignar NombreCampus
+
+            ListaFacultades.Add(facultad);
+        }
+
+        // Agregar campus a la lista de campus
+        foreach (var c in campus)
+        {
+            ListaCampus.Add(c);
+        }
+    }
+    finally
+    {
+        IsBusy = false;
+    }
+}
 
         private async Task GuardarAsync()
         {
-            if (string.IsNullOrWhiteSpace(NuevaFacultad.Nombre) || CampusSeleccionado == null)
+            if (IsBusy) return;
+
+            if (string.IsNullOrWhiteSpace(NuevaFacultad.Nombre))
             {
-                await App.Current.MainPage.DisplayAlert("Error", "Debe ingresar nombre y seleccionar campus", "OK");
+                await App.Current.MainPage.DisplayAlert("Error", "Debe ingresar el nombre de la facultad.", "OK");
                 return;
             }
 
-            NuevaFacultad.CampusId = CampusSeleccionado.CampusId;
-            await _service.GuardarFacultadTotalAsync(NuevaFacultad);
+            if (NuevaFacultad.CampusId == 0)
+            {
+                await App.Current.MainPage.DisplayAlert("Error", "Debe seleccionar un campus.", "OK");
+                return;
+            }
 
-            NuevaFacultad = new Facultad();
-            await CargarAsync();
+            try
+            {
+                IsBusy = true;
+                UpdateCommandsCanExecute();
+
+                await _facultadService.GuardarFacultadTotalAsync(NuevaFacultad);
+                await _facultadService.SincronizarLocalesConApiAsync();
+
+                var listaActualizada = await _facultadService.ObtenerFacultadesLocalAsync();
+                ListaFacultades.Clear();
+                foreach (var f in listaActualizada)
+                    ListaFacultades.Add(f);
+
+                NuevaFacultad = new Facultad();
+                FacultadSeleccionada = null;
+            }
+            finally
+            {
+                IsBusy = false;
+                UpdateCommandsCanExecute();
+            }
         }
 
         private async Task EliminarAsync()
         {
-            if (FacultadSeleccionada == null) return;
+            if (FacultadSeleccionada == null)
+            {
+                await App.Current.MainPage.DisplayAlert("Error", "Debe seleccionar una facultad para eliminar.", "OK");
+                return;
+            }
 
-            await _service.EliminarTotalAsync(FacultadSeleccionada);
-            ListaFacultades.Remove(FacultadSeleccionada);
-            FacultadSeleccionada = null;
+            try
+            {
+                await _facultadService.EliminarTotalAsync(FacultadSeleccionada);
+                ListaFacultades.Remove(FacultadSeleccionada);
+                FacultadSeleccionada = null;
+            }
+            catch (Exception ex)
+            {
+                // Si hay una excepción, es porque la facultad tiene dependencias o algún error en la API
+                await App.Current.MainPage.DisplayAlert("No se puede eliminar", ex.Message, "OK");
+            }
         }
 
-        private async Task CargarCampusAsync()
-        {
-            ListaCampus.Clear();
-            var lista = await _campusService.ObtenerCampusLocalAsync();
-            foreach (var c in lista)
-                ListaCampus.Add(c);
-        }
     }
 }
+

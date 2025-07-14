@@ -18,6 +18,7 @@ namespace ProyectoReservaCanchasMAUI.Data
             _database.CreateTableAsync<Facultad>().Wait();
             _database.CreateTableAsync<Campus>().Wait();
             _database.CreateTableAsync<Cancha>().Wait();
+            _database.CreateTableAsync<Carrera>().Wait();
         }
 
         // --------------- Administrador ----------------
@@ -34,17 +35,39 @@ namespace ProyectoReservaCanchasMAUI.Data
                 .ToListAsync();
         }
 
-        public Task<int> GuardarAdministradorAsync(Administrador admin)
+        public async Task<int> GuardarAdministradorAsync(Administrador admin)
         {
-            if (admin.BannerId != 0)
-                return _database.UpdateAsync(admin);
+            var existente = await _database.Table<Administrador>()
+                                           .Where(a => a.BannerId == admin.BannerId)
+                                           .FirstOrDefaultAsync();
+
+            if (existente == null)
+            {
+                return await _database.InsertAsync(admin);
+            }
             else
-                return _database.InsertAsync(admin);
+            {
+                return await _database.UpdateAsync(admin);
+            }
         }
 
-        public Task<int> EliminarAdministradorAsync(Administrador admin)
+        public Task EliminarTodosAdministradoresAsync()
         {
-            return _database.DeleteAsync(admin);
+            return _database.DeleteAllAsync<Administrador>();
+        }
+
+        public async Task<int> EliminarAdministradorAsync(Administrador admin)
+        {
+            return await _database.Table<Administrador>()
+                .Where(a => a.BannerId == admin.BannerId)
+                .DeleteAsync();
+        }
+
+        // Método para verificar si tiene dependencias (si aplica, sino retorna false)
+        public Task<bool> TieneDependenciasAdministradorAsync(int bannerId)
+        {
+            // Si no tiene dependencias, retorna false
+            return Task.FromResult(false);
         }
 
 
@@ -62,17 +85,43 @@ namespace ProyectoReservaCanchasMAUI.Data
                 .ToListAsync();
         }
 
-        public Task<int> GuardarFacultadAsync(Facultad facultad)
+        public async Task<int> GuardarFacultadAsync(Facultad facultad)
         {
-            if (facultad.FacultadId != 0)
-                return _database.UpdateAsync(facultad);
+            var existente = await _database.Table<Facultad>()
+                                           .Where(f => f.FacultadId == facultad.FacultadId)
+                                           .FirstOrDefaultAsync();
+
+            if (existente == null)
+            {
+                return await _database.InsertAsync(facultad);
+            }
             else
-                return _database.InsertAsync(facultad);
+            {
+                return await _database.UpdateAsync(facultad);
+            }
         }
 
-        public Task<int> EliminarFacultadAsync(Facultad facultad)
+        public Task EliminarTodosFacultadesAsync()
         {
-            return _database.DeleteAsync(facultad);
+            return _database.DeleteAllAsync<Facultad>();
+        }
+
+        public async Task<int> EliminarFacultadAsync(Facultad facultad)
+        {
+            // Borrar por ID directamente en la base de datos
+            return await _database.Table<Facultad>()
+                .Where(f => f.FacultadId == facultad.FacultadId)
+                .DeleteAsync();
+        }
+
+        // Método extra para verificar si tiene dependencias (ejemplo: Carreras)
+        public async Task<bool> TieneDependenciasFacultadAsync(int facultadId)
+        {
+            // Verificar si existen registros de administradores asociados a la facultad
+            var count = await _database.Table<Administrador>()
+                                        .Where(a => a.FacultadId == facultadId)
+                                        .CountAsync();
+            return count > 0;
         }
 
 
@@ -118,37 +167,70 @@ namespace ProyectoReservaCanchasMAUI.Data
         }
         // Método para limpiar la base de datos (útil para pruebas)
 
-        // --------------- Cancha ----------------
+        // ----------- Cancha --------------
+
         public Task<List<Cancha>> ObtenerCanchasAsync()
         {
             return _database.Table<Cancha>().ToListAsync();
         }
 
-        public Task<List<Cancha>> ObtenerCanchasPorCampusAsync(int campusId)
-        {
-            return _database.Table<Cancha>()
-                            .Where(c => c.CampusId == campusId)
-                            .ToListAsync();
-        }
-
         public Task<List<Cancha>> ObtenerCanchasNoSincronizadasAsync()
         {
             return _database.Table<Cancha>()
+                .Where(c => !c.Sincronizado)
+                .ToListAsync();
+        }
+
+        public async Task<int> GuardarCanchaAsync(Cancha cancha)
+        {
+            var existente = await _database.Table<Cancha>()
+                                           .Where(c => c.CanchaId == cancha.CanchaId)
+                                           .FirstOrDefaultAsync();
+
+            if (existente == null)
+            {
+                return await _database.InsertAsync(cancha);
+            }
+            else
+            {
+                return await _database.UpdateAsync(cancha);
+            }
+        }
+
+        public Task EliminarCanchaAsync(Cancha cancha)
+        {
+            return _database.DeleteAsync(cancha);
+        }
+
+        //Metodos para Carrera
+        public Task<List<Carrera>> ObtenerCarrerasAsync()
+        {
+            return _database.Table<Carrera>().ToListAsync();
+        }
+
+        public Task<List<Carrera>> ObtenerCarrerasNoSincronizadasAsync()
+        {
+            return _database.Table<Carrera>()
                             .Where(c => !c.Sincronizado)
                             .ToListAsync();
         }
 
-        public Task<int> GuardarCanchaAsync(Cancha cancha)
+        public async Task<int> GuardarCarreraAsync(Carrera carrera)
         {
-            if (cancha.CanchaId != 0)
-                return _database.UpdateAsync(cancha);
+            var existente = await _database.Table<Carrera>()
+                                           .Where(c => c.CarreraId == carrera.CarreraId)
+                                           .FirstOrDefaultAsync();
+
+            if (existente == null)
+                return await _database.InsertAsync(carrera);
             else
-                return _database.InsertAsync(cancha);
+                return await _database.UpdateAsync(carrera);
         }
 
-        public Task<int> EliminarCanchaAsync(Cancha cancha)
+        public Task EliminarCarreraAsync(Carrera carrera)
         {
-            return _database.DeleteAsync(cancha);
+            return _database.DeleteAsync(carrera);
         }
+
     }
 }

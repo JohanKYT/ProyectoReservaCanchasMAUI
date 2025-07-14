@@ -41,6 +41,12 @@ namespace ProyectoReservaCanchasMAUI
                 client.BaseAddress = new Uri(baseUrl);
             });
 
+            builder.Services.AddHttpClient<CarreraService>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            });
+
+
 
 
             // ViewModels
@@ -48,6 +54,7 @@ namespace ProyectoReservaCanchasMAUI
             builder.Services.AddTransient<CampusViewModel>();
             builder.Services.AddTransient<CanchaViewModel>();
             builder.Services.AddTransient<AdministradorViewModel>();
+            builder.Services.AddTransient<CarreraViewModel>();
 
             builder
                 .UseMauiApp<App>()

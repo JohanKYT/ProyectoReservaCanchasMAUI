@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:ProyectoReservaCanchasMAUI.ViewModels"
              x:Class="ProyectoReservaCanchasMAUI.Views.AdministradoresPage"
              Title="Administradores">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">
-
-            <Entry Placeholder="Banner ID" 
-                   Keyboard="Numeric"
-                   Text="{Binding NuevoAdministrador.BannerId, Mode=TwoWay}" />
 
             <Entry Placeholder="Nombre"
                    Text="{Binding NuevoAdministrador.Nombre, Mode=TwoWay}" />
@@ -37,9 +32,18 @@
                     ItemDisplayBinding="{Binding Nombre}"
                     SelectedItem="{Binding FacultadSeleccionada, Mode=TwoWay}" />
 
-            <Button Text="Guardar" Command="{Binding GuardarCommand}" />
-            <Button Text="Cargar" Command="{Binding CargarCommand}" />
-            <Button Text="Eliminar" Command="{Binding EliminarCommand}" />
+            <Button Text="Guardar" Command="{Binding GuardarCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+
+            <Button Text="Cargar" Command="{Binding CargarCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+
+            <Button Text="Eliminar" Command="{Binding EliminarCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center" />
 
             <Label Text="Lista de Administradores" FontAttributes="Bold" />
             <CollectionView ItemsSource="{Binding ListaAdministradores}"

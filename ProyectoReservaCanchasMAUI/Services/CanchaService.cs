@@ -1,56 +1,167 @@
-﻿using ProyectoReservaCanchasMAUI.Models;
+﻿using ProyectoReservaCanchasMAUI.Data;
 using ProyectoReservaCanchasMAUI.DTOs;
-using ProyectoReservaCanchasMAUI.Data;
+using ProyectoReservaCanchasMAUI.Models;
+using System.Diagnostics;
 using System.Net.Http.Json;
 
-namespace ProyectoReservaCanchasMAUI.Services;
-
-public class CanchaService
+namespace ProyectoReservaCanchasMAUI.Services
 {
-    private readonly HttpClient _httpClient;
-    private readonly AppDatabase _db;
-
-    public CanchaService(HttpClient httpClient, AppDatabase db)
+    public class CanchaService
     {
-        _httpClient = httpClient;
-        _db = db;
-    }
+        private readonly HttpClient _httpClient;
+        private readonly AppDatabase _database;
 
-    public async Task SincronizarDesdeApiAsync()
-    {
-        try
+        public CanchaService(HttpClient httpClient, AppDatabase database)
         {
-            var listaDTO = await _httpClient.GetFromJsonAsync<List<CanchaDTO>>("api/Canchas");
-            if (listaDTO == null) return;
+            _httpClient = httpClient;
+            _database = database;
+        }
 
-            foreach (var dto in listaDTO)
+        public async Task<List<Cancha>> ObtenerCanchasLocalAsync()
+        {
+            return await _database.ObtenerCanchasAsync();
+        }
+
+        public async Task SincronizarLocalesConApiAsync()
+        {
+            var localesNoSincronizados = await _database.ObtenerCanchasNoSincronizadasAsync();
+
+            foreach (var cancha in localesNoSincronizados)
             {
-                var cancha = new Cancha
+                if (cancha.CanchaId == 0)
                 {
-                    CanchaId = dto.CanchaId,
-                    Nombre = dto.Nombre,
-                    Tipo = dto.Tipo,
-                    Disponible = dto.Disponible,
-                    CampusId = dto.CampusId, // ← agregado
-                    Sincronizado = true
-                };
+                    var dto = new CanchaDTO
+                    {
+                        Nombre = cancha.Nombre,
+                        Tipo = cancha.Tipo,
+                        Disponible = cancha.Disponible,
+                        CampusId = cancha.CampusId
+                    };
 
-                await _db.GuardarCanchaAsync(cancha);
+                    var response = await _httpClient.PostAsJsonAsync("api/Canchas", dto);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var nuevoDto = await response.Content.ReadFromJsonAsync<CanchaDTO>();
+                        cancha.CanchaId = nuevoDto.CanchaId;
+                        cancha.Sincronizado = true;
+                    }
+                    else
+                    {
+                        cancha.Sincronizado = false;
+                    }
+
+                    await _database.GuardarCanchaAsync(cancha);
+                }
+                else
+                {
+                    var dto = new CanchaDTO
+                    {
+                        CanchaId = cancha.CanchaId,
+                        Nombre = cancha.Nombre,
+                        Tipo = cancha.Tipo,
+                        Disponible = cancha.Disponible,
+                        CampusId = cancha.CampusId
+                    };
+
+                    var response = await _httpClient.PutAsJsonAsync($"api/Canchas/{cancha.CanchaId}", dto);
+
+                    cancha.Sincronizado = response.IsSuccessStatusCode;
+                    await _database.GuardarCanchaAsync(cancha);
+                }
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al sincronizar canchas: {ex.Message}");
-        }
-    }
 
-    public async Task SincronizarLocalesConApiAsync()
-    {
-        var locales = await _db.ObtenerCanchasNoSincronizadasAsync();
-
-        foreach (var cancha in locales)
+        public async Task SincronizarDesdeApiAsync()
         {
             try
+            {
+                var response = await _httpClient.GetAsync("api/Canchas");
+                if (!response.IsSuccessStatusCode)
+                    return;
+
+                var listaApi = await response.Content.ReadFromJsonAsync<List<CanchaDTO>>();
+                if (listaApi == null)
+                    return;
+
+                var listaLocal = await _database.ObtenerCanchasAsync();
+
+                foreach (var dto in listaApi)
+                {
+                    var cancha = listaLocal.FirstOrDefault(c => c.CanchaId == dto.CanchaId);
+
+                    if (cancha == null)
+                    {
+                        cancha = new Cancha
+                        {
+                            CanchaId = dto.CanchaId,
+                            Nombre = dto.Nombre,
+                            Tipo = dto.Tipo,
+                            Disponible = dto.Disponible,
+                            CampusId = dto.CampusId,
+                            Sincronizado = true
+                        };
+                        await _database.GuardarCanchaAsync(cancha);
+                    }
+                    else
+                    {
+                        cancha.Nombre = dto.Nombre;
+                        cancha.Tipo = dto.Tipo;
+                        cancha.Disponible = dto.Disponible;
+                        cancha.CampusId = dto.CampusId;
+                        cancha.Sincronizado = true;
+                        await _database.GuardarCanchaAsync(cancha);
+                    }
+                }
+
+                // Eliminar locales sincronizados que ya no existen en API
+                var apiIds = listaApi.Select(d => d.CanchaId).ToHashSet();
+                foreach (var canchaLocal in listaLocal)
+                {
+                    if (canchaLocal.Sincronizado && !apiIds.Contains(canchaLocal.CanchaId))
+                    {
+                        await _database.EliminarCanchaAsync(canchaLocal);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CanchaService] Error al sincronizar desde API: {ex.Message}");
+            }
+        }
+
+
+        public async Task GuardarCanchaTotalAsync(Cancha cancha)
+        {
+            if (cancha == null)
+                throw new ArgumentNullException(nameof(cancha));
+
+            if (cancha.CanchaId == 0)
+            {
+                var dto = new CanchaDTO
+                {
+                    Nombre = cancha.Nombre,
+                    Tipo = cancha.Tipo,
+                    Disponible = cancha.Disponible,
+                    CampusId = cancha.CampusId
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("api/Canchas", dto);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var nuevoDto = await response.Content.ReadFromJsonAsync<CanchaDTO>();
+                    cancha.CanchaId = nuevoDto.CanchaId;
+                    cancha.Sincronizado = true;
+                }
+                else
+                {
+                    cancha.Sincronizado = false;
+                }
+
+                await _database.GuardarCanchaAsync(cancha);
+            }
+            else
             {
                 var dto = new CanchaDTO
                 {
@@ -58,92 +169,42 @@ public class CanchaService
                     Nombre = cancha.Nombre,
                     Tipo = cancha.Tipo,
                     Disponible = cancha.Disponible,
-                    CampusId = cancha.CampusId // ← agregado
+                    CampusId = cancha.CampusId
                 };
 
-                HttpResponseMessage response;
+                var response = await _httpClient.PutAsJsonAsync($"api/Canchas/{cancha.CanchaId}", dto);
 
-                if (cancha.CanchaId == 0)
-                    response = await _httpClient.PostAsJsonAsync("api/Canchas", dto);
-                else
-                    response = await _httpClient.PutAsJsonAsync($"api/Canchas/{cancha.CanchaId}", dto);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    cancha.Sincronizado = true;
-                    await _db.GuardarCanchaAsync(cancha);
-                    Console.WriteLine($"Cancha sincronizada: {cancha.Nombre}");
-                }
-                else
-                {
-                    Console.WriteLine($"Error al sincronizar cancha: {cancha.Nombre}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Excepción al sincronizar cancha: {ex.Message}");
+                cancha.Sincronizado = response.IsSuccessStatusCode;
+                await _database.GuardarCanchaAsync(cancha);
             }
         }
-    }
 
-    public Task<List<Cancha>> ObtenerCanchasLocalesAsync() => _db.ObtenerCanchasAsync();
-    public Task<int> GuardarLocalAsync(Cancha c) => _db.GuardarCanchaAsync(c);
-    public Task<int> EliminarCanchaLocalAsync(Cancha c) => _db.EliminarCanchaAsync(c);
-
-    public async Task GuardarCanchaTotalAsync(Cancha cancha)
-    {
-        await _db.GuardarCanchaAsync(cancha);
-
-        try
+        public async Task EliminarTotalAsync(Cancha cancha)
         {
-            var dto = new CanchaDTO
-            {
-                CanchaId = cancha.CanchaId,
-                Nombre = cancha.Nombre,
-                Tipo = cancha.Tipo,
-                Disponible = cancha.Disponible,
-                CampusId = cancha.CampusId // ← agregado
-            };
-
-            HttpResponseMessage response;
+            if (cancha == null) throw new ArgumentNullException(nameof(cancha));
 
             if (cancha.CanchaId == 0)
-                response = await _httpClient.PostAsJsonAsync("api/Canchas", dto);
-            else
-                response = await _httpClient.PutAsJsonAsync($"api/Canchas/{cancha.CanchaId}", dto);
+            {
+                await _database.EliminarCanchaAsync(cancha);
+                return;
+            }
 
+            var url = $"api/Canchas/{cancha.CanchaId}";
+
+            var response = await _httpClient.DeleteAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                cancha.Sincronizado = true;
-                await _db.GuardarCanchaAsync(cancha);
-                Console.WriteLine("Cancha enviada a la API exitosamente");
+                await _database.EliminarCanchaAsync(cancha);
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                await _database.EliminarCanchaAsync(cancha);
             }
             else
             {
-                cancha.Sincronizado = false;
-                await _db.GuardarCanchaAsync(cancha);
-                Console.WriteLine("Fallo al subir cancha a la API");
+                var contenido = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Error al eliminar cancha en API: {contenido}");
             }
-        }
-        catch (Exception ex)
-        {
-            cancha.Sincronizado = false;
-            await _db.GuardarCanchaAsync(cancha);
-            Console.WriteLine($"Error al subir cancha a la API: {ex.Message}");
-        }
-    }
-
-    public async Task EliminarTotalAsync(Cancha c)
-    {
-        try
-        {
-            var response = await _httpClient.DeleteAsync($"api/Canchas/{c.CanchaId}");
-            if (response.IsSuccessStatusCode)
-                await _db.EliminarCanchaAsync(c);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error eliminando cancha: {ex.Message}");
         }
     }
 }
