@@ -15,6 +15,7 @@
         <ShellContent Title="PersonalMantenimiento" ContentTemplate="{DataTemplate views:PersonalMantenimientoPage}" Route="personalmantenimiento" />
         <ShellContent Title="Carrera" ContentTemplate="{DataTemplate views:CarreraPage}" Route="carrera" />
         <ShellContent Title="Cancha" ContentTemplate="{DataTemplate views:CanchaPage}" Route="cancha" />
+        <ShellContent Title="Reserva" ContentTemplate="{DataTemplate views:CalendarioPage}" Route="calendario" />
         
 
 

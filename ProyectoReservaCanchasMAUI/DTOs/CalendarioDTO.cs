@@ -15,6 +15,9 @@ namespace ProyectoReservaCanchasMAUI.DTOs
         public string NotasDetallada { get; set; } = string.Empty;
 
         public int CanchaId { get; set; }
+        public string? NombreCancha { get; set; } // Para mostrar en picker
+
         public int PersonaUdlaId { get; set; }
+        public string? NombrePersona { get; set; } // Para mostrar en picker
     }
 }

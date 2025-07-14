@@ -21,6 +21,7 @@ namespace ProyectoReservaCanchasMAUI.Data
             _database.CreateTableAsync<Carrera>().Wait();
             _database.CreateTableAsync<Estudiante>().Wait();
             _database.CreateTableAsync<PersonalMantenimiento>().Wait();
+            _database.CreateTableAsync<Calendario>().Wait();
         }
 
         // --------------- Administrador ----------------
@@ -293,6 +294,58 @@ namespace ProyectoReservaCanchasMAUI.Data
         public Task EliminarCarreraAsync(Carrera carrera)
         {
             return _database.DeleteAsync(carrera);
+        }
+
+        // -------------------- Calendario ---------------------
+
+        public Task<List<Calendario>> ObtenerCalendariosAsync()
+        {
+            return _database.Table<Calendario>().ToListAsync();
+        }
+
+        public Task<List<Calendario>> ObtenerCalendariosNoSincronizadosAsync()
+        {
+            return _database.Table<Calendario>()
+                            .Where(c => !c.Sincronizado)
+                            .ToListAsync();
+        }
+
+        public async Task<int> GuardarCalendarioAsync(Calendario calendario)
+        {
+            if (calendario == null) throw new ArgumentNullException(nameof(calendario));
+
+            var existente = await _database.Table<Calendario>()
+                                           .Where(c => c.CalendarioId == calendario.CalendarioId)
+                                           .FirstOrDefaultAsync();
+
+            if (existente == null)
+                return await _database.InsertAsync(calendario);
+
+            // Actualizar solo si hay cambios o siempre actualizar?
+            // Para robustez, siempre actualizar para mantener sincronización.
+            return await _database.UpdateAsync(calendario);
+        }
+
+        public Task EliminarTodosCalendariosAsync()
+        {
+            return _database.DeleteAllAsync<Calendario>();
+        }
+
+        public async Task<int> EliminarCalendarioAsync(Calendario calendario)
+        {
+            if (calendario == null) throw new ArgumentNullException(nameof(calendario));
+
+            return await _database.Table<Calendario>()
+                                  .Where(c => c.CalendarioId == calendario.CalendarioId)
+                                  .DeleteAsync();
+        }
+
+        // Para consultas específicas, como ObtenerReservasPorPersonaAsync, sería algo así:
+        public Task<List<Calendario>> ObtenerReservasPorPersonaAsync(int personaUdlaId)
+        {
+            return _database.Table<Calendario>()
+                            .Where(c => c.PersonaUdlaId == personaUdlaId)
+                            .ToListAsync();
         }
 
     }

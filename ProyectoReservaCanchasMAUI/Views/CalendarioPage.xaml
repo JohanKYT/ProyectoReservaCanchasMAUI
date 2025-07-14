@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoReservaCanchasMAUI.Views.CalendarioPage"
+             Title="Reservas">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <!-- Fecha y hora inicio -->
+            <Label Text="Fecha y hora inicio" FontAttributes="Bold" />
+            <DatePicker Date="{Binding CalendarioActual.FechaHoraInicio, Mode=TwoWay}" />
+            <TimePicker Time="{Binding CalendarioActual.FechaHoraInicio, Mode=TwoWay, Converter={StaticResource DateTimeToTimeSpanConverter}}" />
+
+            <!-- Fecha y hora fin -->
+            <Label Text="Fecha y hora fin" FontAttributes="Bold" />
+            <DatePicker Date="{Binding CalendarioActual.FechaHoraFin, Mode=TwoWay}" />
+            <TimePicker Time="{Binding CalendarioActual.FechaHoraFin, Mode=TwoWay, Converter={StaticResource DateTimeToTimeSpanConverter}}" />
+
+            <!-- Estado -->
+            <Label Text="Estado" FontAttributes="Bold" />
+            <Entry Text="{Binding CalendarioActual.Estado, Mode=TwoWay}" Placeholder="Estado reserva" />
+
+            <!-- Notas -->
+            <Label Text="Notas" FontAttributes="Bold" />
+            <Editor Text="{Binding CalendarioActual.NotasDetallada, Mode=TwoWay}" HeightRequest="80" />
+
+            <!-- Cancha -->
+            <Label Text="Cancha" FontAttributes="Bold" />
+            <Picker Title="Selecciona cancha"
+                    ItemsSource="{Binding ListaCanchas}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding CanchaSeleccionada, Mode=TwoWay}" />
+
+            <!-- Persona -->
+            <Label Text="Persona" FontAttributes="Bold" />
+            <Picker Title="Selecciona persona"
+                    ItemsSource="{Binding PersonasDisponibles}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding PersonaSeleccionada, Mode=TwoWay}" />
+
+            <!-- Botones -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <Button Text="Guardar"
+                        Command="{Binding GuardarCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                <Button Text="Cargar"
+                        Command="{Binding CargarCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                <Button Text="Eliminar"
+                        Command="{Binding EliminarCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+            </HorizontalStackLayout>
+
+            <!-- Indicador de carga -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center" />
+
+            <!-- Lista de reservas -->
+            <Label Text="Reservas registradas" FontAttributes="Bold" Margin="0,20,0,0" />
+
+            <CollectionView ItemsSource="{Binding Calendarios}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding CalendarioSeleccionado, Mode=TwoWay}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame BorderColor="Gray" CornerRadius="10" Padding="10" Margin="5">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Estado}" FontAttributes="Bold" />
+                                <Label Text="{Binding FechaHoraInicio, StringFormat='Inicio: {0:dd/MM/yyyy HH:mm}'}" />
+                                <Label Text="{Binding FechaHoraFin, StringFormat='Fin: {0:dd/MM/yyyy HH:mm}'}" />
+                                <Label Text="{Binding CanchaId, StringFormat='Cancha ID: {0}'}" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+
+

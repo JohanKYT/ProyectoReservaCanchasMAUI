@@ -9,6 +9,8 @@
     <Application.Resources>
         <ResourceDictionary>
             <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+            <converters:DateTimeToTimeSpanConverter x:Key="DateTimeToTimeSpanConverter" />
+            <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

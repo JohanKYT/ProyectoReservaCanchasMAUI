@@ -53,6 +53,10 @@ namespace ProyectoReservaCanchasMAUI
             {
                 client.BaseAddress = new Uri(baseUrl);
             });
+            builder.Services.AddHttpClient<CalendarioService>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            });
 
 
 
@@ -66,6 +70,8 @@ namespace ProyectoReservaCanchasMAUI
             builder.Services.AddTransient<CarreraViewModel>();
             builder.Services.AddTransient<EstudianteViewModel>();
             builder.Services.AddTransient<PersonalMantenimientoViewModel>();
+            builder.Services.AddTransient<CalendarioViewModel>();
+
 
             builder
                 .UseMauiApp<App>()

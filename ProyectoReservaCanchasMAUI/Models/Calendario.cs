@@ -9,7 +9,7 @@ namespace ProyectoReservaCanchasMAUI.Models
 {
     public class Calendario
     {
-        [PrimaryKey, AutoIncrement]
+        [PrimaryKey]
         public int CalendarioId { get; set; }
 
         public DateTime FechaHoraInicio { get; set; }
