@@ -20,6 +20,7 @@ namespace ProyectoReservaCanchasMAUI.Data
             _database.CreateTableAsync<Cancha>().Wait();
             _database.CreateTableAsync<Carrera>().Wait();
             _database.CreateTableAsync<Estudiante>().Wait();
+            _database.CreateTableAsync<PersonalMantenimiento>().Wait();
         }
 
         // --------------- Administrador ----------------
@@ -98,6 +99,38 @@ namespace ProyectoReservaCanchasMAUI.Data
         {
             return _database.Table<Estudiante>()
                 .Where(e => e.BannerId == estudiante.BannerId)
+                .DeleteAsync();
+        }
+
+        // PersonalMantenimiento
+        public Task<List<PersonalMantenimiento>> ObtenerPersonalMantenimientoAsync()
+        {
+            return _database.Table<PersonalMantenimiento>().ToListAsync();
+        }
+
+        public Task<List<PersonalMantenimiento>> ObtenerPersonalMantenimientoNoSincronizadosAsync()
+        {
+            return _database.Table<PersonalMantenimiento>()
+                .Where(p => !p.Sincronizado)
+                .ToListAsync();
+        }
+
+        public async Task<int> GuardarPersonalMantenimientoAsync(PersonalMantenimiento personal)
+        {
+            var existente = await _database.Table<PersonalMantenimiento>()
+                .Where(p => p.BannerId == personal.BannerId)
+                .FirstOrDefaultAsync();
+
+            if (existente == null)
+                return await _database.InsertAsync(personal);
+            else
+                return await _database.UpdateAsync(personal);
+        }
+
+        public Task<int> EliminarPersonalMantenimientoAsync(PersonalMantenimiento personal)
+        {
+            return _database.Table<PersonalMantenimiento>()
+                .Where(p => p.BannerId == personal.BannerId)
                 .DeleteAsync();
         }
 

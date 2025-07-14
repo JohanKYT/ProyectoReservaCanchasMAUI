@@ -10,12 +10,13 @@
     <TabBar>
         <ShellContent Title="Campus" ContentTemplate="{DataTemplate views:CampusPage}" Route="campus" />
         <ShellContent Title="Facultad" ContentTemplate="{DataTemplate views:FacultadPage}" Route="facultad" />
-        <ShellContent Title="Cancha" ContentTemplate="{DataTemplate views:CanchaPage}" Route="cancha" />
         <ShellContent Title="Administrador" ContentTemplate="{DataTemplate views:AdministradoresPage}" Route="administrador" />
-        <ShellContent Title="Carrera" ContentTemplate="{DataTemplate views:CarreraPage}" Route="carrera" />
         <ShellContent Title="Estudiante" ContentTemplate="{DataTemplate views:EstudiantePage}" Route="estudiante" />
-
+        <ShellContent Title="PersonalMantenimiento" ContentTemplate="{DataTemplate views:PersonalMantenimientoPage}" Route="personalmantenimiento" />
+        <ShellContent Title="Carrera" ContentTemplate="{DataTemplate views:CarreraPage}" Route="carrera" />
+        <ShellContent Title="Cancha" ContentTemplate="{DataTemplate views:CanchaPage}" Route="cancha" />
         
+
 
     </TabBar>
 </Shell>

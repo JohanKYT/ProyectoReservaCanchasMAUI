@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoReservaCanchasMAUI.Views.PersonalMantenimientoPage"
+             Title="Personal de Mantenimiento">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Entry Placeholder="Nombre"
+                   Text="{Binding NuevoPersonal.Nombre, Mode=TwoWay}" />
+
+            <Entry Placeholder="Correo"
+                   Keyboard="Email"
+                   Text="{Binding NuevoPersonal.Correo, Mode=TwoWay}" />
+
+            <Entry Placeholder="Contraseña"
+                   IsPassword="True"
+                   Text="{Binding NuevoPersonal.Password, Mode=TwoWay}" />
+
+            <Entry Placeholder="Teléfono"
+                   Keyboard="Telephone"
+                   Text="{Binding NuevoPersonal.Telefono, Mode=TwoWay}" />
+
+            <Entry Placeholder="Dirección"
+                   Text="{Binding NuevoPersonal.Direccion, Mode=TwoWay}" />
+
+            <DatePicker Date="{Binding NuevoPersonal.FechaNacimiento, Mode=TwoWay}" />
+
+            <Button Text="Guardar" Command="{Binding GuardarCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+
+            <Button Text="Cargar" Command="{Binding CargarCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+
+            <Button Text="Eliminar" Command="{Binding EliminarCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center" />
+
+            <Label Text="Lista de Personal de Mantenimiento" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding ListaPersonal}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding PersonalSeleccionado, Mode=TwoWay}"
+                            HeightRequest="500">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="5" HasShadow="True" CornerRadius="5">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Nombre}" FontAttributes="Bold" />
+                                <Label Text="{Binding Correo}" />
+                                <Label Text="{Binding Telefono}" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
