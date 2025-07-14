@@ -19,6 +19,7 @@ namespace ProyectoReservaCanchasMAUI.Data
             _database.CreateTableAsync<Campus>().Wait();
             _database.CreateTableAsync<Cancha>().Wait();
             _database.CreateTableAsync<Carrera>().Wait();
+            _database.CreateTableAsync<Estudiante>().Wait();
         }
 
         // --------------- Administrador ----------------
@@ -70,6 +71,35 @@ namespace ProyectoReservaCanchasMAUI.Data
             return Task.FromResult(false);
         }
 
+        // Estudiante
+        public Task<List<Estudiante>> ObtenerEstudiantesAsync()
+        {
+            return _database.Table<Estudiante>().ToListAsync();
+        }
+
+        public Task<List<Estudiante>> ObtenerEstudiantesNoSincronizadosAsync()
+        {
+            return _database.Table<Estudiante>().Where(e => !e.Sincronizado).ToListAsync();
+        }
+
+        public async Task<int> GuardarEstudianteAsync(Estudiante estudiante)
+        {
+            var existente = await _database.Table<Estudiante>()
+                .Where(e => e.BannerId == estudiante.BannerId)
+                .FirstOrDefaultAsync();
+
+            if (existente == null)
+                return await _database.InsertAsync(estudiante);
+            else
+                return await _database.UpdateAsync(estudiante);
+        }
+
+        public Task<int> EliminarEstudianteAsync(Estudiante estudiante)
+        {
+            return _database.Table<Estudiante>()
+                .Where(e => e.BannerId == estudiante.BannerId)
+                .DeleteAsync();
+        }
 
         // --------------- Facultad ----------------
 
