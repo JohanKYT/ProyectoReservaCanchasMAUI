@@ -9,7 +9,7 @@ namespace ProyectoReservaCanchasMAUI.Models
 {
     public abstract class PersonaUdla
     {
-        [PrimaryKey, AutoIncrement]
+        [PrimaryKey]
         public int BannerId { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;

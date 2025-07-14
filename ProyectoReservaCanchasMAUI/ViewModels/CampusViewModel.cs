@@ -1,15 +1,9 @@
 ﻿using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Microsoft.Maui.Controls;
-
-
 
 namespace ProyectoReservaCanchasMAUI.ViewModels
 {
@@ -17,21 +11,13 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
     {
         private readonly CampusService _service;
 
-        public ObservableCollection<Campus> ListaCampus { get; set; } = new();
-
-        public ICommand CargarCommand { get; }
-        public ICommand GuardarCommand { get; }
-        public ICommand EliminarCommand { get; }
+        public ObservableCollection<Campus> ListaCampus { get; } = new();
 
         private Campus _nuevoCampus = new();
         public Campus NuevoCampus
         {
             get => _nuevoCampus;
-            set
-            {
-                _nuevoCampus = value;
-                OnPropertyChanged();
-            }
+            set { _nuevoCampus = value; OnPropertyChanged(); }
         }
 
         private Campus _campusSeleccionado;
@@ -42,64 +28,137 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
             {
                 _campusSeleccionado = value;
                 OnPropertyChanged();
+
                 if (_campusSeleccionado != null)
                 {
                     NuevoCampus = new Campus
                     {
                         CampusId = _campusSeleccionado.CampusId,
                         Nombre = _campusSeleccionado.Nombre,
-                        Direccion = _campusSeleccionado.Direccion
+                        Direccion = _campusSeleccionado.Direccion,
+                        Sincronizado = _campusSeleccionado.Sincronizado
                     };
                 }
             }
         }
 
+        private bool _isBusy;
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set
+            {
+                _isBusy = value;
+                OnPropertyChanged();
+                UpdateCommandsCanExecute();
+            }
+        }
+
+        public ICommand CargarCommand { get; }
+        public ICommand GuardarCommand { get; }
+        public ICommand EliminarCommand { get; }
+
         public CampusViewModel(CampusService service)
         {
             _service = service;
 
-            CargarCommand = new Command(async () => await CargarCampus());
-            GuardarCommand = new Command(async () => await GuardarCampus());
-            EliminarCommand = new Command(async () => await EliminarCampus());
+            CargarCommand = new Command(async () => await CargarAsync(), () => !IsBusy);
+            GuardarCommand = new Command(async () => await GuardarAsync(), () => !IsBusy);
+            EliminarCommand = new Command(async () => await EliminarAsync(), () => !IsBusy);
         }
 
-        private async Task CargarCampus()
+        private void UpdateCommandsCanExecute()
         {
-            ListaCampus.Clear();
-            var lista = await _service.ObtenerCampusLocalAsync();
-            foreach (var item in lista) ListaCampus.Add(item);
+            ((Command)CargarCommand).ChangeCanExecute();
+            ((Command)GuardarCommand).ChangeCanExecute();
+            ((Command)EliminarCommand).ChangeCanExecute();
         }
 
-        private async Task GuardarCampus()
+        public async Task CargarAsync()
         {
-            await _service.GuardarCampusTotalAsync(NuevoCampus);
+            if (IsBusy) return;
 
-            // Si es nuevo, agregar; si es edición, reemplazar en la lista
-            var existente = ListaCampus.FirstOrDefault(c => c.CampusId == NuevoCampus.CampusId);
-            if (existente != null)
+            try
             {
-                var index = ListaCampus.IndexOf(existente);
-                ListaCampus[index] = NuevoCampus;
+                IsBusy = true;
+                ListaCampus.Clear();
+
+                // Primero sube y sincroniza los locales con la API,
+                // aquí es donde se actualizan los IDs locales
+                await _service.SincronizarLocalesConApiAsync();
+
+                // Luego baja la lista actualizada de la API y reemplaza localmente
+                await _service.SincronizarDesdeApiAsync();
+
+                var lista = await _service.ObtenerCampusLocalAsync();
+
+                foreach (var campus in lista)
+                {
+                    ListaCampus.Add(campus);
+                }
             }
-            else
+            finally
             {
-                ListaCampus.Add(NuevoCampus);
+                IsBusy = false;
             }
-
-            NuevoCampus = new Campus();
-            CampusSeleccionado = null;
         }
 
-
-        private async Task EliminarCampus()
+        private async Task GuardarAsync()
         {
-            if (CampusSeleccionado != null)
+            if (IsBusy) return;
+
+            if (string.IsNullOrWhiteSpace(NuevoCampus.Nombre))
             {
-                await _service.EliminarCampusAsync(CampusSeleccionado);
+                await App.Current.MainPage.DisplayAlert("Error", "Debe ingresar el nombre del campus.", "OK");
+                return;
+            }
+
+            try
+            {
+                IsBusy = true;
+                UpdateCommandsCanExecute();
+
+                // Guardar localmente
+                await _service.GuardarCampusTotalAsync(NuevoCampus);
+
+                // Subir al API los datos locales pendientes
+                await _service.SincronizarLocalesConApiAsync();
+
+                // Recargar lista local actualizada
+                var listaActualizada = await _service.ObtenerCampusLocalAsync();
+
+                ListaCampus.Clear();
+                foreach (var c in listaActualizada)
+                    ListaCampus.Add(c);
+
+                NuevoCampus = new Campus();
+                CampusSeleccionado = null;
+            }
+            finally
+            {
+                IsBusy = false;
+                UpdateCommandsCanExecute();
+            }
+        }
+
+        private async Task EliminarAsync()
+        {
+            if (IsBusy) return;
+            if (CampusSeleccionado == null) return;
+
+            try
+            {
+                IsBusy = true;
+
+                await _service.EliminarTotalAsync(CampusSeleccionado);
                 ListaCampus.Remove(CampusSeleccionado);
 
                 NuevoCampus = new Campus();
                 CampusSeleccionado = null;
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
     }

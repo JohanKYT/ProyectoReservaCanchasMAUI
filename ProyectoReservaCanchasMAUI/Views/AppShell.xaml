@@ -3,25 +3,14 @@
     x:Class="ProyectoReservaCanchasMAUI.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:ProyectoReservaCanchasMAUI.Views"
+    xmlns:views="clr-namespace:ProyectoReservaCanchasMAUI.Views"
     Shell.FlyoutBehavior="Flyout"
     Title="ProyectoReservaCanchasMAUI">
 
-
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
-    <ShellContent 
-        Title="Administradores"
-        ContentTemplate="{DataTemplate local:AdministradoresPage}"
-        Route="AdministradoresPage"/>
-    <ShellContent 
-        Title="Facultades"
-        ContentTemplate="{DataTemplate local:FacultadPage}"
-        Route="FacultadPage"/>
-    <ShellContent 
-        Title="Campus"
-        ContentTemplate="{DataTemplate local:CampusPage}"
-        Route="CampusPage"/>
+    <TabBar>
+        <ShellContent Title="Campus" ContentTemplate="{DataTemplate views:CampusPage}" Route="campus" />
+        <ShellContent Title="Facultad" ContentTemplate="{DataTemplate views:FacultadPage}" Route="facultad" />
+        <ShellContent Title="Cancha" ContentTemplate="{DataTemplate views:CanchaPage}" Route="cancha" />
+        <ShellContent Title="Administrador" ContentTemplate="{DataTemplate views:AdministradoresPage}" Route="administrador" />
+    </TabBar>
 </Shell>

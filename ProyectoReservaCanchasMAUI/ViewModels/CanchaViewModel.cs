@@ -76,35 +76,50 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
         private async Task Cargar()
         {
-            await _service.SincronizarLocalesConApiAsync();
-            await _service.SincronizarDesdeApiAsync();
-
-            var listaCampus = await _campusService.ObtenerCampusLocalAsync();
-            var campusDict = listaCampus.ToDictionary(c => c.CampusId, c => c.Nombre);
-
-            ListaCampus.Clear();
-            foreach (var campus in listaCampus)
-                ListaCampus.Add(campus);
-
-            ListaCanchas.Clear();
-            var lista = await _service.ObtenerCanchasLocalesAsync();
-            foreach (var cancha in lista)
+            try
             {
-                cancha.NombreCampus = campusDict.TryGetValue(cancha.CampusId, out var nombreCampus)
-                    ? nombreCampus
-                    : "Desconocido";
+                await _service.SincronizarLocalesConApiAsync();
+                await _service.SincronizarDesdeApiAsync();
 
-                ListaCanchas.Add(cancha);
+                var listaCampus = await _campusService.ObtenerCampusLocalAsync();
+                var campusDict = listaCampus.ToDictionary(c => c.CampusId, c => c.Nombre);
+
+                ListaCampus.Clear();
+                foreach (var campus in listaCampus)
+                    ListaCampus.Add(campus);
+
+                ListaCanchas.Clear();
+                var lista = await _service.ObtenerCanchasLocalesAsync();
+                foreach (var cancha in lista)
+                {
+                    cancha.NombreCampus = campusDict.TryGetValue(cancha.CampusId, out var nombreCampus)
+                        ? nombreCampus
+                        : "Desconocido";
+
+                    ListaCanchas.Add(cancha);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al cargar: {ex.Message}");
+                // Aquí también podrías usar: await App.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
             }
         }
 
         private async Task Guardar()
         {
-            await _service.GuardarCanchaTotalAsync(NuevaCancha);
-            await Cargar();
-            NuevaCancha = new();
+            try
+            {
+                await _service.GuardarCanchaTotalAsync(NuevaCancha);
+                await Cargar();
+                NuevaCancha = new();
+            }
+            catch (Exception ex)
+            {
+                // Puedes mostrar esto con un DisplayAlert o log
+                Console.WriteLine($"Error en Guardar: {ex.Message}");
+            }
         }
-
         private async Task Eliminar()
         {
             if (CanchaSeleccionada != null)

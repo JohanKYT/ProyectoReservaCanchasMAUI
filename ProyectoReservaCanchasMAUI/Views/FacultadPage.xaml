@@ -8,12 +8,12 @@
         <VerticalStackLayout Padding="20" Spacing="15">
 
             <Entry Placeholder="Nombre de Facultad"
-                   Text="{Binding NuevaFacultad.Nombre}" />
+                   Text="{Binding NuevaFacultad.Nombre, Mode=TwoWay}" />
 
             <Label Text="Campus" />
             <Picker ItemsSource="{Binding ListaCampus}"
                     ItemDisplayBinding="{Binding Nombre}"
-                    SelectedItem="{Binding CampusSeleccionado}" />
+                    SelectedItem="{Binding CampusSeleccionado, Mode=TwoWay}" />
 
             <Button Text="Guardar" Command="{Binding GuardarCommand}" />
             <Button Text="Cargar" Command="{Binding CargarCommand}" />

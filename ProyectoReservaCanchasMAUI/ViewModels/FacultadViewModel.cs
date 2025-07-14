@@ -1,7 +1,9 @@
 ﻿using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Maui.ApplicationModel; // Para MainThread
 
 namespace ProyectoReservaCanchasMAUI.ViewModels
 {
@@ -50,60 +52,57 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
             _service = service;
             _campusService = campusService;
 
-            CargarCommand = new Command(async () =>
-            {
-                var listaLocal = await _service.ObtenerFacultadesLocalesAsync();
-                ListaFacultades.Clear();
-                foreach (var f in listaLocal)
-                    ListaFacultades.Add(f);
+            CargarCommand = new Command(async () => await CargarAsync());
+            GuardarCommand = new Command(async () => await GuardarAsync());
+            EliminarCommand = new Command(async () => await EliminarAsync());
 
-                _ = Task.Run(async () =>
-                {
-                    await _service.SincronizarLocalesConApiAsync();
-                    await _service.SincronizarDesdeApiAsync();
-
-                    var listaActualizada = await _service.ObtenerFacultadesLocalesAsync();
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        ListaFacultades.Clear();
-                        foreach (var f in listaActualizada)
-                            ListaFacultades.Add(f);
-                    });
-                });
-            });
-
-            GuardarCommand = new Command(async () =>
-            {
-                if (string.IsNullOrWhiteSpace(NuevaFacultad?.Nombre) || CampusSeleccionado == null)
-                    return;
-
-                NuevaFacultad.CampusId = CampusSeleccionado.CampusId;
-                await _service.GuardarFacultadTotalAsync(NuevaFacultad);
-                NuevaFacultad = new Facultad();
-                CargarCommand.Execute(null);
-            });
-
-            EliminarCommand = new Command(async () =>
-            {
-                if (FacultadSeleccionada == null) return;
-
-                await _service.EliminarTotalAsync(FacultadSeleccionada);
-                ListaFacultades.Remove(FacultadSeleccionada);
-                FacultadSeleccionada = null;
-            });
-
-            // Carga inicial de Campus para Picker
-            CargarCampus();
+            // Cargar campus para picker al iniciar
+            _ = CargarCampusAsync();
         }
 
-        private async void CargarCampus()
+        private async Task CargarAsync()
         {
-            var lista = await _campusService.ObtenerCampusLocalAsync(); // <-- aquí la corrección
+            ListaFacultades.Clear();
+
+            // Sincronizar primero
+            await _service.SincronizarLocalesConApiAsync();
+            await _service.SincronizarDesdeApiAsync();
+
+            var lista = await _service.ObtenerFacultadesLocalesAsync();
+            foreach (var f in lista)
+                ListaFacultades.Add(f);
+        }
+
+        private async Task GuardarAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NuevaFacultad.Nombre) || CampusSeleccionado == null)
+            {
+                await App.Current.MainPage.DisplayAlert("Error", "Debe ingresar nombre y seleccionar campus", "OK");
+                return;
+            }
+
+            NuevaFacultad.CampusId = CampusSeleccionado.CampusId;
+            await _service.GuardarFacultadTotalAsync(NuevaFacultad);
+
+            NuevaFacultad = new Facultad();
+            await CargarAsync();
+        }
+
+        private async Task EliminarAsync()
+        {
+            if (FacultadSeleccionada == null) return;
+
+            await _service.EliminarTotalAsync(FacultadSeleccionada);
+            ListaFacultades.Remove(FacultadSeleccionada);
+            FacultadSeleccionada = null;
+        }
+
+        private async Task CargarCampusAsync()
+        {
             ListaCampus.Clear();
+            var lista = await _campusService.ObtenerCampusLocalAsync();
             foreach (var c in lista)
                 ListaCampus.Add(c);
         }
     }
 }
-
-

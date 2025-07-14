@@ -1,25 +1,25 @@
-﻿using ProyectoReservaCanchasMAUI.Data;
+﻿using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.DTOs;
-
-using ProyectoReservaCanchasMAUI.Models;
+using ProyectoReservaCanchasMAUI.Data;
 using System.Net.Http.Json;
 
-public class AdministradorService 
+namespace ProyectoReservaCanchasMAUI.Services
 {
-    private readonly HttpClient _httpClient;
-    private readonly AppDatabase _db;
-
-    public AdministradorService(HttpClient httpClient, AppDatabase db)
+    public class AdministradorService
     {
-        _httpClient = httpClient;
-        _db = db;
-    }
+        private readonly HttpClient _httpClient;
+        private readonly AppDatabase _db;
 
-    public async Task SincronizarDesdeApiAsync()
-    {
-        try
+        public AdministradorService(HttpClient httpClient, AppDatabase db)
         {
-            var listaDTO = await _httpClient.GetFromJsonAsync<List<AdministradorDTO>>("api/Administradores");
+            _httpClient = httpClient;
+            _db = db;
+        }
+
+        // Descargar datos desde API y guardarlos localmente
+        public async Task SincronizarDesdeApiAsync()
+        {
+            var listaDTO = await _httpClient.GetFromJsonAsync<List<AdministradorDTO>>("api/Administrador");
             if (listaDTO == null) return;
 
             foreach (var dto in listaDTO)
@@ -33,27 +33,19 @@ public class AdministradorService
                     Telefono = dto.Telefono,
                     Direccion = dto.Direccion,
                     FechaNacimiento = dto.FechaNacimiento,
-                    TipoPersona = dto.TipoPersona,
                     FacultadId = dto.FacultadId,
                     Sincronizado = true
                 };
-
                 await _db.GuardarAdministradorAsync(admin);
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al sincronizar administradores: {ex.Message}");
-        }
-    }
 
-    public async Task SincronizarLocalesConApiAsync()
-    {
-        var locales = await _db.ObtenerAdministradoresNoSincronizadosAsync();
-
-        foreach (var admin in locales)
+        // Subir locales no sincronizados a API
+        public async Task SincronizarLocalesConApiAsync()
         {
-            try
+            var localesNoSincronizados = await _db.ObtenerAdministradoresNoSincronizadosAsync();
+
+            foreach (var admin in localesNoSincronizados)
             {
                 var dto = new AdministradorDTO
                 {
@@ -64,97 +56,42 @@ public class AdministradorService
                     Telefono = admin.Telefono,
                     Direccion = admin.Direccion,
                     FechaNacimiento = admin.FechaNacimiento,
-                    TipoPersona = admin.TipoPersona,
                     FacultadId = admin.FacultadId
                 };
 
                 HttpResponseMessage response;
-
                 if (admin.BannerId == 0)
-                    response = await _httpClient.PostAsJsonAsync("api/Administradores", dto);
+                    response = await _httpClient.PostAsJsonAsync("api/Administrador", dto);
                 else
-                    response = await _httpClient.PutAsJsonAsync($"api/Administradores/{admin.BannerId}", dto);
+                    response = await _httpClient.PutAsJsonAsync($"api/Administrador/{admin.BannerId}", dto);
 
                 if (response.IsSuccessStatusCode)
                 {
                     admin.Sincronizado = true;
                     await _db.GuardarAdministradorAsync(admin);
-                    Console.WriteLine($"Administrador sincronizado: {admin.Nombre}");
-                }
-                else
-                {
-                    Console.WriteLine($"Error al sincronizar administrador: {admin.Nombre}");
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Excepción al sincronizar administrador: {ex.Message}");
-            }
         }
-    }
 
-    public Task<List<Administrador>> ObtenerAdministradoresLocalesAsync() => _db.ObtenerAdministradoresAsync();
-    public Task<int> GuardarLocalAsync(Administrador a) => _db.GuardarAdministradorAsync(a);
-    public Task<int> EliminarAdministradorLocalAsync(Administrador a) => _db.EliminarAdministradorAsync(a);
-
-    public async Task GuardarTotalAsync(Administrador admin)
-    {
-        await _db.GuardarAdministradorAsync(admin);
-
-        try
-        {
-            var dto = new AdministradorDTO
-            {
-                BannerId = admin.BannerId,
-                Nombre = admin.Nombre,
-                Correo = admin.Correo,
-                Password = admin.Password,
-                Telefono = admin.Telefono,
-                Direccion = admin.Direccion,
-                FechaNacimiento = admin.FechaNacimiento,
-                TipoPersona = admin.TipoPersona,
-                FacultadId = admin.FacultadId
-            };
-
-            HttpResponseMessage response;
-
-            if (admin.BannerId == 0)
-                response = await _httpClient.PostAsJsonAsync("api/Administradores", dto);
-            else
-                response = await _httpClient.PutAsJsonAsync($"api/Administradores/{admin.BannerId}", dto);
-
-            if (response.IsSuccessStatusCode)
-            {
-                admin.Sincronizado = true;
-                await _db.GuardarAdministradorAsync(admin);
-                Console.WriteLine("Administrador enviado a la API exitosamente");
-            }
-            else
-            {
-                admin.Sincronizado = false;
-                await _db.GuardarAdministradorAsync(admin);
-                Console.WriteLine("Fallo al subir administrador a la API");
-            }
-        }
-        catch (Exception ex)
+        // Guardar local y marcar para sincronizar luego
+        public async Task GuardarTotalAsync(Administrador admin)
         {
             admin.Sincronizado = false;
             await _db.GuardarAdministradorAsync(admin);
-            Console.WriteLine($"Error al subir administrador a la API: {ex.Message}");
         }
-    }
 
-    public async Task EliminarTotalAsync(Administrador admin)
-    {
-        try
+        // Eliminar local y en API
+        public async Task EliminarTotalAsync(Administrador admin)
         {
-            var response = await _httpClient.DeleteAsync($"api/Administradores/{admin.BannerId}");
+            var response = await _httpClient.DeleteAsync($"api/Administrador/{admin.BannerId}");
             if (response.IsSuccessStatusCode)
+            {
                 await _db.EliminarAdministradorAsync(admin);
+            }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error eliminando administrador: {ex.Message}");
-        }
+
+        // Obtener datos locales
+        public Task<List<Administrador>> ObtenerAdministradoresLocalesAsync() =>
+            _db.ObtenerAdministradoresAsync();
     }
 }

@@ -3,38 +3,39 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:ProyectoReservaCanchasMAUI.ViewModels"
              x:Class="ProyectoReservaCanchasMAUI.Views.AdministradoresPage"
-             Title="Administrador">
+             Title="Administradores">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">
 
             <Entry Placeholder="Banner ID" 
                    Keyboard="Numeric"
-                   Text="{Binding NuevoAdministrador.BannerId}" />
+                   Text="{Binding NuevoAdministrador.BannerId, Mode=TwoWay}" />
 
             <Entry Placeholder="Nombre"
-                   Text="{Binding NuevoAdministrador.Nombre}" />
+                   Text="{Binding NuevoAdministrador.Nombre, Mode=TwoWay}" />
 
             <Entry Placeholder="Correo"
-                   Text="{Binding NuevoAdministrador.Correo}" />
+                   Keyboard="Email"
+                   Text="{Binding NuevoAdministrador.Correo, Mode=TwoWay}" />
 
             <Entry Placeholder="Contraseña"
                    IsPassword="True"
-                   Text="{Binding NuevoAdministrador.Password}" />
+                   Text="{Binding NuevoAdministrador.Password, Mode=TwoWay}" />
 
             <Entry Placeholder="Teléfono"
                    Keyboard="Telephone"
-                   Text="{Binding NuevoAdministrador.Telefono}" />
+                   Text="{Binding NuevoAdministrador.Telefono, Mode=TwoWay}" />
 
             <Entry Placeholder="Dirección"
-                   Text="{Binding NuevoAdministrador.Direccion}" />
+                   Text="{Binding NuevoAdministrador.Direccion, Mode=TwoWay}" />
 
-            <DatePicker Date="{Binding NuevoAdministrador.FechaNacimiento}" />
+            <DatePicker Date="{Binding NuevoAdministrador.FechaNacimiento, Mode=TwoWay}" />
 
             <Label Text="Facultad" />
             <Picker ItemsSource="{Binding ListaFacultades}"
                     ItemDisplayBinding="{Binding Nombre}"
-                    SelectedItem="{Binding FacultadSeleccionada}" />
+                    SelectedItem="{Binding FacultadSeleccionada, Mode=TwoWay}" />
 
             <Button Text="Guardar" Command="{Binding GuardarCommand}" />
             <Button Text="Cargar" Command="{Binding CargarCommand}" />
@@ -52,7 +53,7 @@
                                 <Label Text="{Binding Nombre}" FontAttributes="Bold" />
                                 <Label Text="{Binding Correo}" />
                                 <Label Text="{Binding Telefono}" />
-                                <Label Text="{Binding Facultad.Nombre}" FontSize="12" TextColor="Gray" />
+                                <Label Text="{Binding NombreFacultad}" FontSize="12" TextColor="Gray" />
                             </VerticalStackLayout>
                         </Frame>
                     </DataTemplate>
@@ -62,6 +63,7 @@
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
+
 
 
 

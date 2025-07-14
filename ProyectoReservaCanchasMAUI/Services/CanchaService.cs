@@ -3,7 +3,6 @@ using ProyectoReservaCanchasMAUI.DTOs;
 using ProyectoReservaCanchasMAUI.Data;
 using System.Net.Http.Json;
 
-
 namespace ProyectoReservaCanchasMAUI.Services;
 
 public class CanchaService
@@ -32,6 +31,7 @@ public class CanchaService
                     Nombre = dto.Nombre,
                     Tipo = dto.Tipo,
                     Disponible = dto.Disponible,
+                    CampusId = dto.CampusId, // ← agregado
                     Sincronizado = true
                 };
 
@@ -57,7 +57,8 @@ public class CanchaService
                     CanchaId = cancha.CanchaId,
                     Nombre = cancha.Nombre,
                     Tipo = cancha.Tipo,
-                    Disponible = cancha.Disponible
+                    Disponible = cancha.Disponible,
+                    CampusId = cancha.CampusId // ← agregado
                 };
 
                 HttpResponseMessage response;
@@ -100,7 +101,8 @@ public class CanchaService
                 CanchaId = cancha.CanchaId,
                 Nombre = cancha.Nombre,
                 Tipo = cancha.Tipo,
-                Disponible = cancha.Disponible
+                Disponible = cancha.Disponible,
+                CampusId = cancha.CampusId // ← agregado
             };
 
             HttpResponseMessage response;

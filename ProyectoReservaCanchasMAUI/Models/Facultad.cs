@@ -9,7 +9,7 @@ namespace ProyectoReservaCanchasMAUI.Models
 {
     public class Facultad
     {
-        [PrimaryKey, AutoIncrement]
+        [PrimaryKey]
         public int FacultadId { get; set; }
         public string Nombre { get; set; }
         public int CampusId { get; set; }

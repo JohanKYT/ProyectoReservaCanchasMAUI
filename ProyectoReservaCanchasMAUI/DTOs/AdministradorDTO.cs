@@ -15,7 +15,8 @@ namespace ProyectoReservaCanchasMAUI.DTOs
         public string Telefono { get; set; }
         public string Direccion { get; set; }
         public DateTime FechaNacimiento { get; set; }
-        public string TipoPersona { get; set; }
+        public string TipoPersona => "Administrador";
+
         public int FacultadId { get; set; }
         public FacultadDTO? Facultad { get; set; }
     }

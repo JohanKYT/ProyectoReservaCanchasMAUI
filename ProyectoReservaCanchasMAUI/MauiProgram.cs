@@ -4,7 +4,6 @@ using ProyectoReservaCanchasMAUI.Services;
 using ProyectoReservaCanchasMAUI.ViewModels;
 using ProyectoReservaCanchasMAUI.Views;
 
-
 namespace ProyectoReservaCanchasMAUI
 {
     public static class MauiProgram
@@ -12,50 +11,50 @@ namespace ProyectoReservaCanchasMAUI
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
-            builder.Services.AddSingleton(new HttpClient
+
+            string baseUrl = "https://localhost:7004/"; // O IP local para Android físico
+
+            string dbPath = Path.Combine(FileSystem.AppDataDirectory, "AppDataBase.db");
+
+            // Base
+            builder.Services.AddSingleton<AppDatabase>(s => new AppDatabase(dbPath));
+
+
+            // Servicios que usan HttpClient (API)
+            builder.Services.AddHttpClient<CampusService>(client =>
             {
-                BaseAddress = new Uri("https://localhost:7004/") // Cambiar a IP si usas móvil físico
+                client.BaseAddress = new Uri(baseUrl);
             });
 
-            // Base de datos local
-            builder.Services.AddSingleton<AppDatabase>(s =>
+            builder.Services.AddHttpClient<FacultadService>(client =>
             {
-                var dbPath = Path.Combine(FileSystem.AppDataDirectory, "reserva_canchas.db");
-                return new AppDatabase(dbPath);
+                client.BaseAddress = new Uri(baseUrl);
             });
 
-            // Servicios
-            builder.Services.AddSingleton<AdministradorService>();
-            builder.Services.AddSingleton<FacultadService>();
-            builder.Services.AddSingleton<CampusService>();
-            builder.Services.AddSingleton<CanchaService>();
+            builder.Services.AddHttpClient<CanchaService>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            });
 
-            // ViewModels y Vistas
-            builder.Services.AddSingleton<CampusViewModel>();
-            builder.Services.AddTransient<CampusPage>();
+            builder.Services.AddHttpClient<AdministradorService>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            });
 
-            builder.Services.AddSingleton<FacultadViewModel>();
-            builder.Services.AddTransient<FacultadPage>();
 
-            builder.Services.AddTransient<AdministradorViewModel>();
-            builder.Services.AddTransient<AdministradoresPage>();
 
+            // ViewModels
+            builder.Services.AddTransient<FacultadViewModel>();
+            builder.Services.AddTransient<CampusViewModel>();
             builder.Services.AddTransient<CanchaViewModel>();
-            builder.Services.AddTransient<CanchaPage>();
-
+            builder.Services.AddTransient<AdministradorViewModel>();
 
             builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
-
-
-#if DEBUG
-    		builder.Logging.AddDebug();
-#endif
 
             return builder.Build();
         }

@@ -9,7 +9,7 @@ namespace ProyectoReservaCanchasMAUI.Models
 {
     public class Cancha
     {
-        [PrimaryKey, AutoIncrement]
+        [PrimaryKey]
         public int CanchaId { get; set; }
 
         public string Nombre { get; set; } = string.Empty;

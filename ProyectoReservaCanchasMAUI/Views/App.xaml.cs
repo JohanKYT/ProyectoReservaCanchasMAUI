@@ -1,19 +1,12 @@
-﻿using ProyectoReservaCanchasMAUI.Data;
-using ProyectoReservaCanchasMAUI.Services;
-using ProyectoReservaCanchasMAUI.ViewModels;
-
-namespace ProyectoReservaCanchasMAUI
+﻿namespace ProyectoReservaCanchasMAUI
 {
     public partial class App : Application
     {
-        public App(CampusService campusService, FacultadService facultadService, CanchaService canchaService)
+        public App()
         {
             InitializeComponent();
-        }
 
-        protected override Window CreateWindow(IActivationState? activationState)
-        {
-            return new Window(new AppShell());
+            MainPage = new AppShell();
         }
     }
 }

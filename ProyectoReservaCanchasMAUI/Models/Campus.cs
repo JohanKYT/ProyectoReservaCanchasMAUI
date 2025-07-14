@@ -9,7 +9,7 @@ namespace ProyectoReservaCanchasMAUI.Models
 {
     public class Campus
     {
-        [PrimaryKey, AutoIncrement]
+        [PrimaryKey]
         public int CampusId { get; set; }
         [MaxLength(100)]
         public string Nombre { get; set; }
