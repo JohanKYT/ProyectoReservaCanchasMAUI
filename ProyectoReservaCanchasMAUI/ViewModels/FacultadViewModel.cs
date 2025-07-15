@@ -1,4 +1,5 @@
-﻿using ProyectoReservaCanchasMAUI.Models;
+﻿using ProyectoReservaCanchasMAUI.Auxiliares;
+using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -99,46 +100,46 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
         }
 
         public async Task CargarAsync()
-{
-    if (IsBusy) return;
+            {
+                if (IsBusy) return;
 
-    try
-    {
-        IsBusy = true;
+                try
+                {
+                    IsBusy = true;
 
-        ListaFacultades.Clear();
-        ListaCampus.Clear();
+                    ListaFacultades.Clear();
+                    ListaCampus.Clear();
 
-        // Sincronizar locales con API
-        await _facultadService.SincronizarLocalesConApiAsync();
-        await _facultadService.SincronizarDesdeApiAsync();
+                    // Sincronizar locales con API
+                    await _facultadService.SincronizarLocalesConApiAsync();
+                    await _facultadService.SincronizarDesdeApiAsync();
 
-        // Obtener facultades locales
-        var facultades = await _facultadService.ObtenerFacultadesLocalAsync();
+                    // Obtener facultades locales
+                    var facultades = await _facultadService.ObtenerFacultadesLocalAsync();
 
-        // Obtener campus locales
-        var campus = await _campusService.ObtenerCampusLocalAsync();
+                    // Obtener campus locales
+                    var campus = await _campusService.ObtenerCampusLocalAsync();
 
-        // Asignar NombreCampus a cada facultad
-        foreach (var facultad in facultades)
-        {
-            var campusRelacionado = campus.FirstOrDefault(c => c.CampusId == facultad.CampusId);
-            facultad.NombreCampus = campusRelacionado?.Nombre ?? "Campus desconocido";  // Asignar NombreCampus
+                    // Asignar NombreCampus a cada facultad
+                    foreach (var facultad in facultades)
+                    {
+                        var campusRelacionado = campus.FirstOrDefault(c => c.CampusId == facultad.CampusId);
+                        facultad.NombreCampus = campusRelacionado?.Nombre ?? "Campus desconocido";  // Asignar NombreCampus
 
-            ListaFacultades.Add(facultad);
-        }
+                        ListaFacultades.Add(facultad);
+                    }
 
-        // Agregar campus a la lista de campus
-        foreach (var c in campus)
-        {
-            ListaCampus.Add(c);
-        }
-    }
-    finally
-    {
-        IsBusy = false;
-    }
-}
+                    // Agregar campus a la lista de campus
+                    foreach (var c in campus)
+                    {
+                        ListaCampus.Add(c);
+                    }
+                }
+                finally
+                {
+                    IsBusy = false;
+                }
+            }
 
         private async Task GuardarAsync()
         {
@@ -156,6 +157,8 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 return;
             }
 
+            bool esNuevo = NuevaFacultad.FacultadId == 0;
+
             try
             {
                 IsBusy = true;
@@ -163,6 +166,10 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
                 await _facultadService.GuardarFacultadTotalAsync(NuevaFacultad);
                 await _facultadService.SincronizarLocalesConApiAsync();
+                await Logger.LogAsync("Facultad",
+                    esNuevo ? "Crear" : "Editar",
+                    $"{(esNuevo ? "Creada" : "Editada")} facultad: {NuevaFacultad.Nombre}");
+
 
                 var listaActualizada = await _facultadService.ObtenerFacultadesLocalAsync();
                 ListaFacultades.Clear();
@@ -190,6 +197,10 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
             try
             {
                 await _facultadService.EliminarTotalAsync(FacultadSeleccionada);
+                await Logger.LogAsync("Facultad",
+                    "Eliminar",
+                    $"Facultad eliminada: {FacultadSeleccionada.Nombre}");
+
                 ListaFacultades.Remove(FacultadSeleccionada);
                 FacultadSeleccionada = null;
             }

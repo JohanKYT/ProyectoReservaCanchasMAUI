@@ -18,7 +18,7 @@ namespace ProyectoReservaCanchasMAUI.Auxiliares
         {
             try
             {
-                string archivoLog = Path.Combine(LogsDirectory, $"{entidad.ToLower()}.log");
+                string archivoLog = Path.Combine(LogsDirectory, $"{entidad.ToLower()}.txt");
                 string textoLog = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {accion.ToUpper()} | {mensaje}{Environment.NewLine}";
                 await File.AppendAllTextAsync(archivoLog, textoLog);
             }

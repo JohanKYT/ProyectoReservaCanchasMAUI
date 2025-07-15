@@ -1,4 +1,5 @@
-﻿    using ProyectoReservaCanchasMAUI.Models;
+﻿using ProyectoReservaCanchasMAUI.Auxiliares;
+using ProyectoReservaCanchasMAUI.Models;
     using ProyectoReservaCanchasMAUI.Services;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -147,15 +148,21 @@
                     return;
                 }
 
-                try
+            bool esNuevo = NuevoAdministrador.BannerId == 0;
+
+            try
                 {
                     IsBusy = true;
                     UpdateCommandsCanExecute();
 
                     await _service.GuardarAdministradorTotalAsync(NuevoAdministrador);
                     await _service.SincronizarLocalesConApiAsync();
+                    await Logger.LogAsync("Administrador",
+                        esNuevo ? "Crear" : "Editar",
+                        $"{(esNuevo ? "Creado" : "Actualizado")} administrador: {NuevoAdministrador.Nombre} - Facultad ID: {NuevoAdministrador.FacultadId}"
+                        );
 
-                    var listaActualizada = await _service.ObtenerAdministradoresLocalAsync();
+                var listaActualizada = await _service.ObtenerAdministradoresLocalAsync();
                     ListaAdministradores.Clear();
                     foreach (var a in listaActualizada)
                         ListaAdministradores.Add(a);
@@ -184,7 +191,13 @@
                         await _service.EliminarTotalAsync(AdministradorSeleccionado);
                         ListaAdministradores.Remove(AdministradorSeleccionado);
 
-                        NuevoAdministrador = new Administrador();
+                    await Logger.LogAsync(
+                    "Administrador",
+                    "Eliminar",
+                    $"Administrador eliminado: {AdministradorSeleccionado.Nombre} - Facultad ID: {AdministradorSeleccionado.FacultadId}"
+                     );
+
+                    NuevoAdministrador = new Administrador();
                         AdministradorSeleccionado = null;
                     }
                     catch (InvalidOperationException ex)

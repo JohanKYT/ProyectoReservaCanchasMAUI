@@ -1,4 +1,5 @@
-﻿using ProyectoReservaCanchasMAUI.Models;
+﻿using ProyectoReservaCanchasMAUI.Auxiliares;
+using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -147,6 +148,8 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 return;
             }
 
+            bool esNuevo = NuevaCarrera.CarreraId == 0;
+
             try
             {
                 IsBusy = true;
@@ -156,6 +159,10 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
                 await _carreraService.GuardarCarreraTotalAsync(NuevaCarrera);
                 await _carreraService.SincronizarLocalesConApiAsync();
+                await Logger.LogAsync("Carrera",
+                    esNuevo ? "Crear" : "Editar",
+                    $"{(esNuevo ? "Creada" : "Editada")} carrera: {NuevaCarrera.Nombre}");
+
 
                 var listaActualizada = await _carreraService.ObtenerCarrerasLocalAsync();
 
@@ -192,6 +199,9 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
             try
             {
                 await _carreraService.EliminarTotalAsync(CarreraSeleccionada);
+                await Logger.LogAsync("Carrera",
+                    "Eliminar",
+                    $"Carrera eliminada: {CarreraSeleccionada.Nombre}");
                 ListaCarreras.Remove(CarreraSeleccionada);
                 CarreraSeleccionada = null;
             }

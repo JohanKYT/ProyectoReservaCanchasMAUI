@@ -1,4 +1,5 @@
-﻿using ProyectoReservaCanchasMAUI.Models;
+﻿using ProyectoReservaCanchasMAUI.Auxiliares;
+using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -163,6 +164,8 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 return;
             }
 
+            bool esNuevo = NuevaCancha.CanchaId == 0;
+
             try
             {
                 IsBusy = true;
@@ -172,6 +175,11 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
                 await _canchaService.GuardarCanchaTotalAsync(NuevaCancha);
                 await _canchaService.SincronizarLocalesConApiAsync();
+                // Log
+                await Logger.LogAsync("Cancha",
+                    esNuevo ? "Crear" : "Editar",
+                    $"{(esNuevo ? "Creada" : "Editada")} cancha: {NuevaCancha.Nombre}");
+
 
                 var listaActualizada = await _canchaService.ObtenerCanchasLocalAsync();
                 var campus = await _campusService.ObtenerCampusLocalAsync();
@@ -207,6 +215,11 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
             try
             {
                 await _canchaService.EliminarTotalAsync(CanchaSeleccionada);
+               
+                await Logger.LogAsync("Cancha",
+                    "Eliminar",
+                    $"Cancha eliminada: {CanchaSeleccionada.Nombre}"
+                );
                 ListaCanchas.Remove(CanchaSeleccionada);
                 CanchaSeleccionada = null;
             }

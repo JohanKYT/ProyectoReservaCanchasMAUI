@@ -1,4 +1,5 @@
-﻿using ProyectoReservaCanchasMAUI.Models;
+﻿using ProyectoReservaCanchasMAUI.Auxiliares;
+using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -144,6 +145,8 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 return;
             }
 
+            bool esNuevo = NuevoEstudiante.BannerId == 0;
+
             try
             {
                 IsBusy = true;
@@ -151,6 +154,10 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
                 await _service.GuardarEstudianteTotalAsync(NuevoEstudiante);
                 await _service.SincronizarLocalesConApiAsync();
+                await Logger.LogAsync("Estudiante",
+                    esNuevo ? "Crear" : "Editar",
+                    $"{(esNuevo ? "Creado" : "Editado")} estudiante: {NuevoEstudiante.Nombre}");
+
 
                 var listaActualizada = await _service.ObtenerEstudiantesLocalAsync();
                 ListaEstudiantes.Clear();
@@ -179,6 +186,10 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 try
                 {
                     await _service.EliminarTotalAsync(EstudianteSeleccionado);
+                    await Logger.LogAsync("Estudiante",
+                        "Eliminar",
+                        $"Estudiante eliminado: {EstudianteSeleccionado.Nombre}");
+
                     ListaEstudiantes.Remove(EstudianteSeleccionado);
 
                     NuevoEstudiante = new Estudiante();

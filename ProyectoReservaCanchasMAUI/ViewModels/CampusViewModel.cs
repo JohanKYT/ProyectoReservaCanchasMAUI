@@ -1,4 +1,5 @@
-﻿using ProyectoReservaCanchasMAUI.Models;
+﻿using ProyectoReservaCanchasMAUI.Auxiliares;
+using ProyectoReservaCanchasMAUI.Models;
 using ProyectoReservaCanchasMAUI.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -113,6 +114,8 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 return;
             }
 
+            bool esNuevo = NuevoCampus.CampusId == 0;
+
             try
             {
                 IsBusy = true;
@@ -123,6 +126,12 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
                 // Subir al API los datos locales pendientes
                 await _service.SincronizarLocalesConApiAsync();
+                // Registrar log
+                await Logger.LogAsync(
+                    "Campus",
+                    esNuevo ? "Crear" : "Editar",
+                    $"{(esNuevo ? "Creado" : "Actualizado")} campus: {NuevoCampus.Nombre}"
+                );
 
                 // Recargar lista local actualizada
                 var listaActualizada = await _service.ObtenerCampusLocalAsync();
@@ -151,8 +160,13 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 IsBusy = true;
 
                 await _service.EliminarTotalAsync(CampusSeleccionado);
+                
+                await Logger.LogAsync(
+                    "Campus",
+                    "Eliminar",
+                    $"Campus eliminado: {CampusSeleccionado.Nombre}"
+                );
                 ListaCampus.Remove(CampusSeleccionado);
-
                 NuevoCampus = new Campus();
                 CampusSeleccionado = null;
             }

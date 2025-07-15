@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ProyectoReservaCanchasMAUI.Auxiliares;
 
 namespace ProyectoReservaCanchasMAUI.ViewModels
 {
@@ -222,6 +223,9 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
                 return;
             }
 
+            // Declaramos la variable correctamente
+            bool esNuevo = CalendarioActual.CalendarioId == 0;
+
             try
             {
                 IsBusy = true;
@@ -229,6 +233,7 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
                 await _calendarioService.GuardarCalendarioTotalAsync(CalendarioActual);
                 await _calendarioService.SincronizarLocalesConApiAsync();
+                await Logger.LogAsync("Calendario",esNuevo ? "Crear" : "Editar",$"Reserva {(esNuevo ? "creada" : "actualizada")} para cancha ID {CalendarioActual.CanchaId} desde {CalendarioActual.FechaHoraInicio} hasta {CalendarioActual.FechaHoraFin}");
 
                 // Recarga datos para reflejar cambios
                 await CargarAsync();
@@ -272,6 +277,8 @@ namespace ProyectoReservaCanchasMAUI.ViewModels
 
                 await _calendarioService.EliminarTotalAsync(CalendarioSeleccionado);
                 await _calendarioService.SincronizarLocalesConApiAsync();
+                await Logger.LogAsync("Calendario", "Eliminar", $"Reserva eliminada para cancha ID {CalendarioActual.CanchaId} del {CalendarioActual.FechaHoraInicio}");
+
 
                 await CargarAsync();
 
